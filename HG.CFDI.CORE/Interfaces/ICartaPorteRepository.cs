@@ -18,6 +18,7 @@ namespace HG.CFDI.CORE.Interfaces
         public Task<ResponseImportacion> reinsertaCartaPorteRepositorio(string database, string guia);
         public Task changeStatusCartaPorteAsync(int no_guia, string compania, int EstatusTimbrado, string mensajeTimbrado, int sistemaTimbrado);
         public Task fechaSolicitudTimbradoAsync(int no_guia, string compania);
+        public Task<bool> TrySetTimbradoEnProcesoAsync(int no_guia, string compania);
         public Task insertError(int no_guia, string num_guia, string compania, string error, int? idOperador_Lis, string? idUnidad_Lis, string? idRemolque_Lis);
         public Task<bool> InsertDocumentosTimbrados(archivoCFDi archivos, string server);
         public Task patchPdfAsync(int no_guia, string compania, byte[] pdf);

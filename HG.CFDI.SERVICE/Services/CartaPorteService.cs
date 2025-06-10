@@ -597,5 +597,18 @@ namespace HG.CFDI.SERVICE.Services
         {
             await _cartaPorteRepository.fechaSolicitudTimbradoAsync(no_guia, compania);
         }
+
+        public async Task<bool> TrySetTimbradoEnProcesoAsync(int no_guia, string compania)
+        {
+            try
+            {
+                return await _cartaPorteRepository.TrySetTimbradoEnProcesoAsync(no_guia, compania);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error setting timbrado en proceso");
+                return false;
+            }
+        }
     }
 }
