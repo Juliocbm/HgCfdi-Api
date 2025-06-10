@@ -65,15 +65,15 @@ namespace HG.CFDI.API.Jobs.TransferenciaCartaPorte
                             await cartaPorteService.deleteErrors(cp.no_guia, cp.compania);
                             try
                             {
-                                switch (cp.sistemaTimbrado)
+                                switch ((SistemaTimbrado)cp.sistemaTimbrado)
                                 {
-                                    case 1:
+                                    case SistemaTimbrado.Lis:
                                         await cartaPorteService.timbrarConLis(cartaPorteServiceApi, cp);
                                         break;
-                                    case 2:
+                                    case SistemaTimbrado.BuzonE:
                                         await cartaPorteService.timbrarConBuzonE(cp, compania.Database);
                                         break;
-                                    case 3:
+                                    case SistemaTimbrado.InvoiceOne:
                                         await cartaPorteService.timbrarConInvoiceOne(cp, compania.Database);
                                         break;
                                     default:

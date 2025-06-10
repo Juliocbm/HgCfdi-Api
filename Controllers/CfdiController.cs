@@ -27,7 +27,7 @@ namespace HG.CFDI.API.Controllers
         }
 
         [HttpPost("TimbraRemision")]
-        public async Task<IActionResult> TimbraRemision(string database, string remision, int sistemaTimbrado = 2)
+        public async Task<IActionResult> TimbraRemision(string database, string remision, SistemaTimbrado sistemaTimbrado = SistemaTimbrado.BuzonE)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace HG.CFDI.API.Controllers
 
                 var cartaPorte = res.Data;
 
-                if (sistemaTimbrado < 1 || sistemaTimbrado > 3)
+                if (!Enum.IsDefined(typeof(SistemaTimbrado), sistemaTimbrado))
                 {
                     _logger.LogInformation($"Valor de sistemaTimbrado inválido: {sistemaTimbrado}.");
 
@@ -71,7 +71,7 @@ namespace HG.CFDI.API.Controllers
                 }
 
                 // Si el parámetro es válido, se usa para decidir el PAC
-                cartaPorte.sistemaTimbrado = sistemaTimbrado;
+                cartaPorte.sistemaTimbrado = (int)sistemaTimbrado;
 
                 if (cartaPorte.estatusTimbrado == 1)
                 {
@@ -123,7 +123,7 @@ namespace HG.CFDI.API.Controllers
                 }
 
                 // Validar sistema de timbrado
-                if (cartaPorte.sistemaTimbrado == 0 || cartaPorte.sistemaTimbrado == null)
+                if (cartaPorte.sistemaTimbrado == 0)
                 {
                     _logger.LogInformation($"El cliente de la guía {remision} no tiene configurado un sistema de timbrado válido.");
                     return Ok(new UniqueResponse()
@@ -143,11 +143,12 @@ namespace HG.CFDI.API.Controllers
                 await _cartaPorteService.deleteErrors(cartaPorte.no_guia, cartaPorte.compania);
 
                 // Procesar timbrado basado en sistema configurado
-                var result = cartaPorte.sistemaTimbrado switch
+                var sistema = (SistemaTimbrado)cartaPorte.sistemaTimbrado;
+                var result = sistema switch
                 {
-                    1 => await _cartaPorteService.timbrarConLis(_cartaPorteServiceApi, cartaPorte),
-                    2 => await _cartaPorteService.timbrarConBuzonE(cartaPorte, database.ToLower()),
-                    3 => await _cartaPorteService.timbrarConInvoiceOne(cartaPorte, database.ToLower()),
+                    SistemaTimbrado.Lis => await _cartaPorteService.timbrarConLis(_cartaPorteServiceApi, cartaPorte),
+                    SistemaTimbrado.BuzonE => await _cartaPorteService.timbrarConBuzonE(cartaPorte, database.ToLower()),
+                    SistemaTimbrado.InvoiceOne => await _cartaPorteService.timbrarConInvoiceOne(cartaPorte, database.ToLower()),
                     _ => throw new InvalidOperationException($"Sistema de timbrado no válido: {cartaPorte.sistemaTimbrado}")
                 };
 
