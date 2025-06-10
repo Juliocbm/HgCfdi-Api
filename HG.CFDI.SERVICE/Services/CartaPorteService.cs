@@ -476,6 +476,7 @@ namespace HG.CFDI.SERVICE.Services
                             await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null);
                         }
                     });
+
                 }
 
                 return respuesta;
