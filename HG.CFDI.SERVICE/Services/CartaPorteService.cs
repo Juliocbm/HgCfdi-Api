@@ -16,6 +16,7 @@ using System.Xml.Linq;
 using System.Globalization;
 using XSDToXML.Utils;
 using Microsoft.Extensions.Logging;
+using HG.CFDI.SERVICE.Utils;
 
 //VERSION PROD
 using static InvoiceOne.ioTimbreCFDISoapClient;
@@ -465,15 +466,11 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (respuesta.IsSuccess)
                 {
-                    _ = Task.Run(async () =>
-                    {
-                        try { await PersistirDocumentosAsync(cartaPorte, respuesta.XmlByteArray, respuesta.PdfByteArray, responseServicio.uuid, database); }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error en procesos posteriores para {Guia}", cartaPorte.num_guia);
-                            await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null);
-                        }
-                    });
+                    TaskHelper.RunSafeAsync(() => PersistirDocumentosAsync(cartaPorte,
+                        respuesta.XmlByteArray,
+                        respuesta.PdfByteArray,
+                        responseServicio.uuid,
+                        database));
 
                 }
 
