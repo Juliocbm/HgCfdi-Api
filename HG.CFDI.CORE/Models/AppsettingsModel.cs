@@ -65,10 +65,5 @@ namespace HG.CFDI.CORE.Models
         public string PdfPath { get; set; }
     }
 
-    public class RetryOptions
-    {
-        public int MaxEmitirFacturaRetries { get; set; } = 3;
-    }
-
 
 }
