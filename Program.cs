@@ -28,7 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 
-// ConfiguraciÛn avanzada de Swagger
+// Configuraci√≥n avanzada de Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -60,7 +60,7 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 builder.Services.AddDbContext<CfdiDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// ConfiguraciÛn de Hangfire
+// Configuraci√≥n de Hangfire
 builder.Services.AddHangfire(config =>
     config.UseSqlServerStorage(connectionString));
 
@@ -75,7 +75,8 @@ builder.Services.AddMemoryCache();
 // Configura AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// Registra el cliente HTTP de Ryder (leyendo los defaults que tienes en la librerÌa)
+builder.Services.Configure<RetryOptions>(builder.Configuration.GetSection("RetryOptions"));
+// Registra el cliente HTTP de Ryder (leyendo los defaults que tienes en la librer√≠a)
 builder.Services.AddRyderApiClient();
 
 //DbContextFactory
@@ -120,11 +121,11 @@ builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 
 Log.Logger = new LoggerConfiguration()
-    // Establecer el nivel mÌnimo de logging global
+    // Establecer el nivel m√≠nimo de logging global
     .MinimumLevel.Information()
 
-    // Sobrescribir niveles para categorÌas especÌficas
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) // Ignorar la mayorÌa de los logs de Microsoft
+    // Sobrescribir niveles para categor√≠as espec√≠ficas
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning) // Ignorar la mayor√≠a de los logs de Microsoft
     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore.Server.IIS", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore.Server.IISIntegration", LogEventLevel.Warning)
@@ -134,22 +135,22 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
 
     // Especificar los sinks
-    .WriteTo.Console() // Para depuraciÛn
+    .WriteTo.Console() // Para depuraci√≥n
     .WriteTo.File("logs/TimbradoUnificado.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 
-#region esto se hace una vez, en el sistema se puede indicar la carga del certificado una vez y ya, no se har· en cada factura que se timbre
+#region esto se hace una vez, en el sistema se puede indicar la carga del certificado una vez y ya, no se har√° en cada factura que se timbre
 try
 {
-    // UbicaciÛn del archivo appsettings.json
+    // Ubicaci√≥n del archivo appsettings.json
     string jsonFilePath = Path.Combine(builder.Environment.ContentRootPath, "appsettings.json");
     string jsonString = File.ReadAllText(jsonFilePath);
 
-    // Deserializar el JSON a un objeto Dictionary para manipulaciÛn f·cil
+    // Deserializar el JSON a un objeto Dictionary para manipulaci√≥n f√°cil
     var settings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString);
 
-    // Acceder y modificar la secciÛn 'FirmaDigital'
+    // Acceder y modificar la secci√≥n 'FirmaDigital'
     if (settings != null && settings.TryGetValue("FirmaDigital", out var firmaDigitalArray))
     {
         var firmasDigitales = JsonSerializer.Deserialize<List<JsonElement>>(firmaDigitalArray.ToString());
@@ -190,7 +191,7 @@ try
                 firmasDigitales[i] = JsonDocument.Parse(JsonSerializer.Serialize(modifiedFirmaDigital)).RootElement;
             }
 
-            // Actualizar la secciÛn 'FirmaDigital' en el diccionario principal
+            // Actualizar la secci√≥n 'FirmaDigital' en el diccionario principal
             settings["FirmaDigital"] = JsonDocument.Parse(JsonSerializer.Serialize(firmasDigitales)).RootElement;
         }
     }
@@ -281,7 +282,7 @@ app.UseCors();
 // Inyectar y utilizar IRecurringJobManager
 var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
 
-// DespuÈs de construir la aplicaciÛn
+// Despu√©s de construir la aplicaci√≥n
 var serviceProvider = app.Services;
 //using (var scope = app.Services.CreateScope())
 //{

@@ -12,6 +12,7 @@ using GeneraPdfBuzonE;
 using BuzonE;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
+using Polly;
 using System.Xml.Linq;
 using System.Globalization;
 using XSDToXML.Utils;
@@ -47,6 +48,7 @@ namespace HG.CFDI.SERVICE.Services
         private readonly LisApiOptions _lisApiOptions;
         private readonly RyderApiOptions _ryderApiOptions;
         private readonly List<compania> _companias;
+        private readonly RetryOptions _retryOptions;
 
         private readonly IValidacionesSatService _validacionesSat;
         private readonly IRyderService _ryderService;
@@ -61,6 +63,7 @@ namespace HG.CFDI.SERVICE.Services
             IOptions<List<BuzonEApiCredential>> buzonEOptions,
             IOptions<LisApiOptions> lisApiOptions,
             IOptions<RyderApiOptions> ryderApiOptions,
+            IOptions<RetryOptions> retryOptions,
             IOptions<List<compania>> companiaOptions,
             //IApiCcpRyder apiCcpRyder,
 
@@ -79,6 +82,7 @@ namespace HG.CFDI.SERVICE.Services
             _buzonEApiCredentials = buzonEOptions.Value;
             _lisApiOptions = lisApiOptions.Value;
             _ryderApiOptions = ryderApiOptions.Value;
+            _retryOptions = retryOptions.Value;
             _companias = companiaOptions.Value;
             _sufijoArchivoCfdi = configuration.GetValue<string>("SufijoNombreCfdi");
             //_apiCcpRyder = apiCcpRyder;
@@ -431,9 +435,18 @@ namespace HG.CFDI.SERVICE.Services
 
                 using (var client = new EmisionServiceClient())
                 {
+                    var retryPolicy = Policy
+                        .Handle<Exception>()
+                        .WaitAndRetryAsync(_retryOptions.MaxEmitirFacturaRetries,
+                            retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                            (ex, ts, attempt, ctx) =>
+                            {
+                                _logger.LogWarning(ex, $"Retry {attempt} executing emitirFacturaAsync");
+                            });
+
                     try
                     {
-                        responseServicio = await client.emitirFacturaAsync(requestUnique.request);
+                        responseServicio = await retryPolicy.ExecuteAsync(() => client.emitirFacturaAsync(requestUnique.request));
                     }
                     finally
                     {
