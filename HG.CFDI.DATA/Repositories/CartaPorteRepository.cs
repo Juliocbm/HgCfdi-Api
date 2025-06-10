@@ -90,7 +90,14 @@ namespace HG.CFDI.DATA.Repositories
                         entidad.estatusTimbrado = EstatusTimbrado;
                         entidad.mensajeTimbrado = mensajeTimbrado;
                         entidad.sistemaTimbrado = sistemaTimbrado;
-                        entidad.fechaTimbrado = DateTime.Now;
+                        if (EstatusTimbrado == 5)
+                        {
+                            entidad.fechaTimbrado = null;
+                        }
+                        else
+                        {
+                            entidad.fechaTimbrado = DateTime.Now;
+                        }
 
                         // Guarda los cambios en la base de datos
                         await context.SaveChangesAsync();
