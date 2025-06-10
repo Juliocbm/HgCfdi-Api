@@ -70,6 +70,9 @@ namespace HG.CFDI.API.Controllers
                     });
                 }
 
+                // Si el parámetro es válido, se usa para decidir el PAC
+                cartaPorte.sistemaTimbrado = sistemaTimbrado;
+
                 if (cartaPorte.estatusTimbrado == 1)
                 {
                     _logger.LogInformation($"Guía {remision} ya está en proceso de timbrado.");
@@ -172,8 +175,8 @@ namespace HG.CFDI.API.Controllers
 
                 if (response.Data != null && response.Data.archivoCFDi != null && response.Data.archivoCFDi.pdf.Length <= 0)
                 {
-                    // Convertir de byte[] a string
-                    string xmlCFDTimbrado = Encoding.ASCII.GetString(response.Data.archivoCFDi.xml);
+                    // Convertir de byte[] a string utilizando UTF-8 para evitar perdida de informacion
+                    string xmlCFDTimbrado = Encoding.UTF8.GetString(response.Data.archivoCFDi.xml);
 
                     byte[] pdfBytes = await _documentosService.getPdfTimbrado(xmlCFDTimbrado, database);
 
@@ -228,8 +231,8 @@ namespace HG.CFDI.API.Controllers
 
                 var response = await _cartaPorteService.getCartaPorte(database.ToLower(), num_guia);
 
-                // Convertir de byte[] a string
-                string xmlCFDTimbrado = Encoding.ASCII.GetString(response.Data.archivoCFDi.xml);
+                // Convertir de byte[] a string utilizando UTF-8 para evitar perdida de informacion
+                string xmlCFDTimbrado = Encoding.UTF8.GetString(response.Data.archivoCFDi.xml);
 
                 byte[] pdfBytes = await _documentosService.getPdfTimbrado(xmlCFDTimbrado, database);
 

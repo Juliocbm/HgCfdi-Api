@@ -435,8 +435,22 @@ namespace HG.CFDI.SERVICE.Services
                     return respuesta;
                 }
 
-                var client = new EmisionServiceClient();
-                var responseServicio = await client.emitirFacturaAsync(requestUnique.request);
+
+                BuzonE.responseBE responseServicio = new BuzonE.responseBE();
+
+                using (var client = new EmisionServiceClient())
+                {
+                    try
+                    {
+                        responseServicio = await client.emitirFacturaAsync(requestUnique.request);
+                        client.Close();
+                    }
+                    catch
+                    {
+                        client.Abort();
+                        throw;
+                    }
+                }
 
                 if (responseServicio == null || string.IsNullOrWhiteSpace(responseServicio.code))
                 {
