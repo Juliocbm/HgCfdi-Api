@@ -438,9 +438,6 @@ namespace HG.CFDI.SERVICE.Services
                     return respuesta;
                 }
 
-                //serialize json
-                var json_request = JsonConvert.SerializeObject(requestUnique.request);
-
                 BuzonE.responseBE responseServicio = new BuzonE.responseBE();
 
                 using (var client = new EmisionServiceClient())
