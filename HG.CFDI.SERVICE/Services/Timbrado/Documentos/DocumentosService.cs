@@ -150,7 +150,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
         {
             //throw new System.Exception("💥 Error simulado en getPdfTimbrado ###");
 
-            byte[] xmlbytes = Encoding.ASCII.GetBytes(xmlCFDTimbrado);
+            // Utilizar UTF-8 para codificar el XML y evitar perdida de datos
+            byte[] xmlbytes = Encoding.UTF8.GetBytes(xmlCFDTimbrado);
 
             using (WsVerificaXmlRiClient cliente = new WsVerificaXmlRiClient())
             {
