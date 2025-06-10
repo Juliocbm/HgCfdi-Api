@@ -467,15 +467,16 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (respuesta.IsSuccess)
                 {
-                    try
+                    _ = Task.Run(async () =>
                     {
-                        await PersistirDocumentosAsync(cartaPorte, respuesta.XmlByteArray, respuesta.PdfByteArray, responseServicio.uuid, database);
-                    }
-                    catch (System.Exception ex)
-                    {
-                        _logger.LogError(ex, "Error persisting stamped documents");
-                        await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null);
-                    }
+                        try { await PersistirDocumentosAsync(cartaPorte, respuesta.XmlByteArray, respuesta.PdfByteArray, responseServicio.uuid, database); }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error en procesos posteriores para {Guia}", cartaPorte.num_guia);
+                            await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null);
+                        }
+                    });
+
                 }
 
                 return respuesta;
