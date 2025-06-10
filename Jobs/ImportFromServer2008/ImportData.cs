@@ -36,14 +36,11 @@ namespace HG.CFDI.API.Jobs.TransferenciaCartaPorte
         {
             _logger.LogInformation("entre al job de importacion de datos");
 
-            Task.Run(async () =>
-            {       
-                    using (var scope = _scopeFactory.CreateScope())
-                    {
-                        var cartaPorteService = scope.ServiceProvider.GetRequiredService<ICartaPorteService>();
-                        //await cartaPorteService.importarCartasPorteServer2008();
-                    }                
-            }).GetAwaiter().GetResult();
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var cartaPorteService = scope.ServiceProvider.GetRequiredService<ICartaPorteService>();
+                //await cartaPorteService.importarCartasPorteServer2008();
+            }
 
         }
     }

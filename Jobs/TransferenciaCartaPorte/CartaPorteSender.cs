@@ -36,61 +36,55 @@ namespace HG.CFDI.API.Jobs.TransferenciaCartaPorte
         {
             _logger.LogInformation("entre al job de timbrado");
 
-            Task.Run(async () =>
+            // Recorriendo cada empresa con foreach
+            foreach (var compania in _companias)
             {
-                // Recorriendo cada empresa con foreach
-                foreach (var compania in _companias)
+                if (!compania.Timbrar)
+                    continue;
+
+                using (var scope = _scopeFactory.CreateScope())
                 {
-                    if (!compania.Timbrar)
-                        continue; 
+                    var cartaPorteService = scope.ServiceProvider.GetRequiredService<ICartaPorteService>();
+                    var cartaPorteServiceApi = scope.ServiceProvider.GetRequiredService<ICartaPorteServiceApi>();
 
-                    using (var scope = _scopeFactory.CreateScope())
+                    var cartasPorte = await cartaPorteService.getCartasPortePendiente(compania.id);
+
+                    if (cartasPorte.Any())
                     {
-                        var cartaPorteService = scope.ServiceProvider.GetRequiredService<ICartaPorteService>();
-                        var cartaPorteServiceApi = scope.ServiceProvider.GetRequiredService<ICartaPorteServiceApi>();
+                        var tasks = cartasPorte.Select(x => cartaPorteService.TrySetTimbradoEnProcesoAsync(x.no_guia, x.compania));
+                        await Task.WhenAll(tasks);
+                    }
 
-                        var cartasPorte = await cartaPorteService.getCartasPortePendiente(compania.id);
-
-                        if (cartasPorte.Any())
+                    foreach (var cp in cartasPorte)
+                    {
+                        await cartaPorteService.deleteErrors(cp.no_guia, cp.compania);
+                        try
                         {
-                            var tasks = cartasPorte.Select(async x =>
+                            switch ((SistemaTimbrado)cp.sistemaTimbrado)
                             {
-                                await cartaPorteService.TrySetTimbradoEnProcesoAsync(x.no_guia, x.compania);
-                            });
-                            await Task.WhenAll(tasks);
+                                case SistemaTimbrado.Lis:
+                                    await cartaPorteService.timbrarConLis(cartaPorteServiceApi, cp);
+                                    break;
+                                case SistemaTimbrado.BuzonE:
+                                    await cartaPorteService.timbrarConBuzonE(cp, compania.Database);
+                                    break;
+                                case SistemaTimbrado.InvoiceOne:
+                                    await cartaPorteService.timbrarConInvoiceOne(cp, compania.Database);
+                                    break;
+                                default:
+                                    await cartaPorteService.timbrarConLis(cartaPorteServiceApi, cp);
+                                    break;
+                            }
+
                         }
-
-                        foreach (var cp in cartasPorte)
+                        catch (Exception err)
                         {
-                            await cartaPorteService.deleteErrors(cp.no_guia, cp.compania);
-                            try
-                            {
-                                switch ((SistemaTimbrado)cp.sistemaTimbrado)
-                                {
-                                    case SistemaTimbrado.Lis:
-                                        await cartaPorteService.timbrarConLis(cartaPorteServiceApi, cp);
-                                        break;
-                                    case SistemaTimbrado.BuzonE:
-                                        await cartaPorteService.timbrarConBuzonE(cp, compania.Database);
-                                        break;
-                                    case SistemaTimbrado.InvoiceOne:
-                                        await cartaPorteService.timbrarConInvoiceOne(cp, compania.Database);
-                                        break;
-                                    default:
-                                        await cartaPorteService.timbrarConLis(cartaPorteServiceApi, cp);
-                                        break;
-                                }
-                               
-                            }
-                            catch (Exception err)
-                            {
-                                await cartaPorteService.changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 2, "Contiene errores de timbrado", cp.sistemaTimbrado);
-                                await cartaPorteService.insertError(cp.no_guia, cp.num_guia, cp.compania, err.Message, cp.idOperadorLis, cp.idUnidadLis, cp.idRemolqueLis);
-                            }
+                            await cartaPorteService.changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 2, "Contiene errores de timbrado", cp.sistemaTimbrado);
+                            await cartaPorteService.insertError(cp.no_guia, cp.num_guia, cp.compania, err.Message, cp.idOperadorLis, cp.idUnidadLis, cp.idRemolqueLis);
                         }
                     }
                 }
-            }).GetAwaiter().GetResult();
+            }
 
         }
     }
