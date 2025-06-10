@@ -70,6 +70,9 @@ namespace HG.CFDI.API.Controllers
                     });
                 }
 
+                // Si el parámetro es válido, se usa para decidir el PAC
+                cartaPorte.sistemaTimbrado = sistemaTimbrado;
+
                 if (cartaPorte.estatusTimbrado == 1)
                 {
                     _logger.LogInformation($"Guía {remision} ya está en proceso de timbrado.");
