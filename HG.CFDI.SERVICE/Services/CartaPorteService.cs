@@ -418,24 +418,14 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (!requestUnique.IsSuccess)
                 {
-                    var respChaangeEstatus = await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
-                    if (!respChaangeEstatus.IsSuccess)
-                    {
-                        respuesta.Errores.Add(respChaangeEstatus.Message);
-                        foreach (var error in respChaangeEstatus.ErrorList)
-                        {
-                            respuesta.Errores.Add(error);
-                        }
-                    }
-
-                    await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, requestUnique.Mensaje, null, null, null);
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, requestUnique.Mensaje, null, null, null));
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = "Contiene errores de timbrado";
                     respuesta.Errores.Add(requestUnique.Mensaje);
                     return respuesta;
                 }
-
 
                 BuzonE.responseBE responseServicio = new BuzonE.responseBE();
 
@@ -453,7 +443,7 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (responseServicio == null || string.IsNullOrWhiteSpace(responseServicio.code))
                 {
-                    await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Respuesta nula o inválida del servicio BuzónE.", null, null, null);
+                    TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Respuesta nula o inválida del servicio BuzónE.", null, null, null));
                     return new UniqueResponse
                     {
                         IsSuccess = false,
@@ -482,10 +472,12 @@ namespace HG.CFDI.SERVICE.Services
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Timbrado fallido";
                 respuesta.Errores.AddRange(_utilsService.GetAllExceptionMessages(ex));
-                await _cartaPorteRepository.changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+
+                TaskHelper.RunSafeAsync(() => _cartaPorteRepository.changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
+
                 foreach (var error in respuesta.Errores)
                 {
-                    await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, error, null, null, null);
+                    TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, error, null, null, null));
                 }
                 return respuesta;
             }
@@ -506,18 +498,19 @@ namespace HG.CFDI.SERVICE.Services
                 case "BE-EMS.200":
                     _logger.LogInformation($"Timbrado exitoso {cartaPorte.num_guia} - {responseServicio.code}");
 
-                    var respChaangeEstatus = await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado);
-                    if (!respChaangeEstatus.IsSuccess)
-                    {
-                        respuesta.Errores.Add(respChaangeEstatus.Message);
-                        foreach (var error in respChaangeEstatus.ErrorList)
-                        {
-                            respuesta.Errores.Add(error);
-                        }
-                    }
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado));
 
                     byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
-                    byte[] pdfBytes = await _documentosService.getPdfTimbrado(responseServicio.xmlCFDTimbrado, database);
+                    byte[] pdfBytes = Array.Empty<byte>();
+                    try
+                    {
+                        pdfBytes = await _documentosService.getPdfTimbrado(responseServicio.xmlCFDTimbrado, database);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error al obtener el PDF para {cartaPorte.num_guia}");
+                        respuesta.Errores.Add("Fallo al generar el PDF");
+                    }
 
                     respuesta.IsSuccess = true;
                     respuesta.XmlByteArray = xmlBytes;
@@ -526,7 +519,7 @@ namespace HG.CFDI.SERVICE.Services
                     break;
                 default:
                     _logger.LogInformation($"Timbrado fallido BuzonE {cartaPorte.num_guia} ");
-                    await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = "Contiene errores de timbrado";
@@ -545,32 +538,69 @@ namespace HG.CFDI.SERVICE.Services
 
         private async Task PersistirDocumentosAsync(cartaPorteCabecera cartaPorte, byte[] xmlBytes, byte[] pdfBytes, string uuid, string database)
         {
-            var archivo = _documentosService.CreateArchivoCFDi(cartaPorte, xmlBytes, pdfBytes, uuid);
-
-            var successDocs2019 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2019");
-            if (!successDocs2019)
+            try
             {
-                await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2019", null, null, null);
-                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado);
-            }
+                var archivo = _documentosService.CreateArchivoCFDi(cartaPorte, xmlBytes, pdfBytes, uuid);
 
-            var successDocs2008 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2008");
-            if (!successDocs2008)
-            {
-                await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2008", null, null, null);
-                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2008]", cartaPorte.sistemaTimbrado);
-            }
-
-            if (cartaPorte.cteReceptorId == _ryderApiOptions.IdClienteForUploadIngreso)
-            {
-                var succesProcessRyder = await _ryderService.ProcesarRyderAsync(cartaPorte, xmlBytes, pdfBytes);
-                if (!succesProcessRyder)
+                bool successDocs2019 = false;
+                try
                 {
-                    await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al enviar el cfdi a Api Ryder", null, null, null);
+                    successDocs2019 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2019");
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogError(ex, "Error insertando documentos en server2019");
+                }
+                if (!successDocs2019)
+                {
+                    TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2019", null, null, null));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado));
+                }
+
+                bool successDocs2008 = false;
+                try
+                {
+                    successDocs2008 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2008");
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogError(ex, "Error insertando documentos en server2008");
+                }
+                if (!successDocs2008)
+                {
+                    TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2008", null, null, null));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2008]", cartaPorte.sistemaTimbrado));
+                }
+
+                if (cartaPorte.cteReceptorId == _ryderApiOptions.IdClienteForUploadIngreso)
+                {
+                    try
+                    {
+                        var succesProcessRyder = await _ryderService.ProcesarRyderAsync(cartaPorte, xmlBytes, pdfBytes);
+                        if (!succesProcessRyder)
+                        {
+                            TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al enviar el cfdi a Api Ryder", null, null, null));
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "Error enviando cfdi a Api Ryder");
+                    }
+                }
+
+                try
+                {
+                    await _trucksService.trasladaUuidToTrucks(new archivoCFDi() { no_guia = cartaPorte.no_guia, num_guia = cartaPorte.num_guia, compania = cartaPorte.compania, xml = xmlBytes, pdf = pdfBytes, uuid = uuid, fechaCreacion = DateTime.Now });
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogError(ex, "Error trasladando uuid a Trucks");
                 }
             }
-
-            await _trucksService.trasladaUuidToTrucks(new archivoCFDi() { no_guia = cartaPorte.no_guia, num_guia = cartaPorte.num_guia, compania = cartaPorte.compania, xml = xmlBytes, pdf = pdfBytes, uuid = uuid, fechaCreacion = DateTime.Now });
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error general en PersistirDocumentosAsync");
+            }
         }
 
 
