@@ -435,6 +435,18 @@ namespace HG.CFDI.SERVICE.Services
                     {
                         responseServicio = await client.emitirFacturaAsync(requestUnique.request);
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error al invocar emitirFacturaAsync");
+                        TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 5, "Sin respuesta de BuzonE", cartaPorte.sistemaTimbrado));
+                        TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null));
+                        return new UniqueResponse
+                        {
+                            IsSuccess = false,
+                            Mensaje = "No se obtuvo respuesta del servicio de timbrado.",
+                            Errores = new List<string> { ex.Message }
+                        };
+                    }
                     finally
                     {
                         try { await client.CloseAsync(); } catch { client.Abort(); }
@@ -443,6 +455,7 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (responseServicio == null || string.IsNullOrWhiteSpace(responseServicio.code))
                 {
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 5, "Sin respuesta de BuzonE", cartaPorte.sistemaTimbrado));
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Respuesta nula o inválida del servicio BuzónE.", null, null, null));
                     return new UniqueResponse
                     {
