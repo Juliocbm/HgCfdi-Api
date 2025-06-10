@@ -413,7 +413,7 @@ namespace HG.CFDI.SERVICE.Services
             _logger.LogInformation($"Pac utilizado para timbrar {cartaPorte.num_guia}: BuzonE");
             try
             {
-                var requestUnique = await _validacionesSat.getCartaPorteRequestBuzonE(cartaPorte, database);
+                var requestUnique = await GenerarPeticionBuzonE(cartaPorte, database);
 
                 if (!requestUnique.IsSuccess)
                 {
@@ -421,12 +421,9 @@ namespace HG.CFDI.SERVICE.Services
                     if (!respChaangeEstatus.IsSuccess)
                     {
                         respuesta.Errores.Add(respChaangeEstatus.Message);
-                        await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, respChaangeEstatus.Message, null, null, null);
-
                         foreach (var error in respChaangeEstatus.ErrorList)
                         {
                             respuesta.Errores.Add(error);
-                            await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, error, null, null, null);
                         }
                     }
 
@@ -438,14 +435,8 @@ namespace HG.CFDI.SERVICE.Services
                     return respuesta;
                 }
 
-                //serialize json
-                var json_request = JsonConvert.SerializeObject(requestUnique.request);
-
                 var client = new EmisionServiceClient();
-
-                BuzonE.responseBE responseServicio = new BuzonE.responseBE();
-
-                responseServicio = await client.emitirFacturaAsync(requestUnique.request);
+                var responseServicio = await client.emitirFacturaAsync(requestUnique.request);
 
                 if (responseServicio == null || string.IsNullOrWhiteSpace(responseServicio.code))
                 {
@@ -458,82 +449,11 @@ namespace HG.CFDI.SERVICE.Services
                     };
                 }
 
-                //EVALUAMOS EL CODIGO QUE RESPONDIO EL SERVICIO DE TIMBRADO
-                switch (responseServicio.code)
+                respuesta = await EvaluarRespuestaBuzonE(responseServicio, cartaPorte, database);
+
+                if (respuesta.IsSuccess)
                 {
-                    case "BE-EMS.200":
-                        _logger.LogInformation($"Timbrado exitoso {cartaPorte.num_guia} - {responseServicio.code}");
-
-                        var respChaangeEstatus = await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado);
-                        if (!respChaangeEstatus.IsSuccess)
-                        {
-                            respuesta.Errores.Add(respChaangeEstatus.Message);
-
-                            foreach (var error in respChaangeEstatus.ErrorList)
-                            {
-                                respuesta.Errores.Add(error);
-                            }
-                        }
-
-                        byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
-                        byte[] pdfBytes = await _documentosService.getPdfTimbrado(responseServicio.xmlCFDTimbrado, database);
-
-                        var archivo = _documentosService.CreateArchivoCFDi(cartaPorte, xmlBytes, pdfBytes, responseServicio.uuid);
-
-                        //Insertar cfdi a base de datos del server 2008 cualquier empresa
-                        var successDocs2019 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2019");
-                        if (!successDocs2019)
-                        {
-                            respuesta.Errores.Add("Fallo al insertar documentos timbrados a base de datos 2019");
-                            await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2019", null, null, null);
-                            await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado);
-                        }
-
-                        //Insertar cfdi a base de datos del server 2008 si la empresa es ch, rl o ld
-                        var successDocs2008 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2008");
-                        if (!successDocs2008)
-                        {
-                            respuesta.Errores.Add("Fallo al insertar documentos timbrados a base de datos 2008");
-                            await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2008", null, null, null);
-                            await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2008]", cartaPorte.sistemaTimbrado);
-                        }
-
-                        //Enviar cfdi si el receptor es Ryder
-                        if (cartaPorte.cteReceptorId == _ryderApiOptions.IdClienteForUploadIngreso)
-                        {
-                            var succesProcessRyder = await _ryderService.ProcesarRyderAsync(cartaPorte, xmlBytes, pdfBytes);
-                            if (!succesProcessRyder)
-                            {
-                                respuesta.Errores.Add("Fallo al enviar el cfdi a Api Ryder");
-                                await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al enviar el cfdi a Api Ryder", null, null, null);
-                            }
-                        }
-
-                        //Trasladar folio fiscal a trucks
-                        await _trucksService.trasladaUuidToTrucks(new archivoCFDi() { no_guia = cartaPorte.no_guia, num_guia = cartaPorte.num_guia, compania = cartaPorte.compania, xml = xmlBytes, pdf = pdfBytes, uuid = responseServicio.uuid, fechaCreacion = DateTime.Now });
-
-                        respuesta.IsSuccess = true;
-                        respuesta.XmlByteArray = xmlBytes;
-                        respuesta.PdfByteArray = pdfBytes;
-                        respuesta.Mensaje = "Timbrado exitoso";
-                        break;
-                    default:
-                        _logger.LogInformation($"Timbrado fallido BuzonE {cartaPorte.num_guia} ");
-                        await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
-
-                        respuesta.IsSuccess = false;
-                        respuesta.Mensaje = "Contiene errores de timbrado";
-                        respuesta.Errores.Add(responseServicio.mensaje);
-                        respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);
-
-                        _logger.LogInformation($"Error en {cartaPorte.num_guia}: {responseServicio.mensaje} ");
-
-                        foreach (var error in responseServicio.errorList)
-                        {
-                            respuesta.Errores.Add(error.message + error.detail);
-                            await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, error.message + error.detail, null, null, null);
-                        }
-                        break;
+                    await PersistirDocumentosAsync(cartaPorte, respuesta.XmlByteArray, respuesta.PdfByteArray, responseServicio.uuid, database);
                 }
 
                 return respuesta;
@@ -552,6 +472,87 @@ namespace HG.CFDI.SERVICE.Services
                 return respuesta;
             }
 
+        }
+
+        private async Task<UniqueRequest<RequestBE>> GenerarPeticionBuzonE(cartaPorteCabecera cartaPorte, string database)
+        {
+            return await _validacionesSat.getCartaPorteRequestBuzonE(cartaPorte, database);
+        }
+
+        private async Task<UniqueResponse> EvaluarRespuestaBuzonE(responseBE responseServicio, cartaPorteCabecera cartaPorte, string database)
+        {
+            UniqueResponse respuesta = new UniqueResponse();
+
+            switch (responseServicio.code)
+            {
+                case "BE-EMS.200":
+                    _logger.LogInformation($"Timbrado exitoso {cartaPorte.num_guia} - {responseServicio.code}");
+
+                    var respChaangeEstatus = await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado);
+                    if (!respChaangeEstatus.IsSuccess)
+                    {
+                        respuesta.Errores.Add(respChaangeEstatus.Message);
+                        foreach (var error in respChaangeEstatus.ErrorList)
+                        {
+                            respuesta.Errores.Add(error);
+                        }
+                    }
+
+                    byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
+                    byte[] pdfBytes = await _documentosService.getPdfTimbrado(responseServicio.xmlCFDTimbrado, database);
+
+                    respuesta.IsSuccess = true;
+                    respuesta.XmlByteArray = xmlBytes;
+                    respuesta.PdfByteArray = pdfBytes;
+                    respuesta.Mensaje = "Timbrado exitoso";
+                    break;
+                default:
+                    _logger.LogInformation($"Timbrado fallido BuzonE {cartaPorte.num_guia} ");
+                    await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+
+                    respuesta.IsSuccess = false;
+                    respuesta.Mensaje = "Contiene errores de timbrado";
+                    respuesta.Errores.Add(responseServicio.mensaje);
+                    respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);
+
+                    foreach (var error in responseServicio.errorList)
+                    {
+                        respuesta.Errores.Add(error.message + error.detail);
+                    }
+                    break;
+            }
+
+            return respuesta;
+        }
+
+        private async Task PersistirDocumentosAsync(cartaPorteCabecera cartaPorte, byte[] xmlBytes, byte[] pdfBytes, string uuid, string database)
+        {
+            var archivo = _documentosService.CreateArchivoCFDi(cartaPorte, xmlBytes, pdfBytes, uuid);
+
+            var successDocs2019 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2019");
+            if (!successDocs2019)
+            {
+                await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2019", null, null, null);
+                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado);
+            }
+
+            var successDocs2008 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2008");
+            if (!successDocs2008)
+            {
+                await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2008", null, null, null);
+                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2008]", cartaPorte.sistemaTimbrado);
+            }
+
+            if (cartaPorte.cteReceptorId == _ryderApiOptions.IdClienteForUploadIngreso)
+            {
+                var succesProcessRyder = await _ryderService.ProcesarRyderAsync(cartaPorte, xmlBytes, pdfBytes);
+                if (!succesProcessRyder)
+                {
+                    await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al enviar el cfdi a Api Ryder", null, null, null);
+                }
+            }
+
+            await _trucksService.trasladaUuidToTrucks(new archivoCFDi() { no_guia = cartaPorte.no_guia, num_guia = cartaPorte.num_guia, compania = cartaPorte.compania, xml = xmlBytes, pdf = pdfBytes, uuid = uuid, fechaCreacion = DateTime.Now });
         }
 
 
