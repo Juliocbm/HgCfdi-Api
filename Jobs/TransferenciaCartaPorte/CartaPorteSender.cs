@@ -54,8 +54,8 @@ namespace HG.CFDI.API.Jobs.TransferenciaCartaPorte
                         if (cartasPorte.Any())
                         {
                             var tasks = cartasPorte.Select(async x =>
-                            {                                
-                                await cartaPorteService.changeStatusCartaPorteAsync(x.no_guia, x.num_guia, x.compania, 1, "En proceso de timbrado.", x.sistemaTimbrado);
+                            {
+                                await cartaPorteService.TrySetTimbradoEnProcesoAsync(x.no_guia, x.compania);
                             });
                             await Task.WhenAll(tasks);
                         }

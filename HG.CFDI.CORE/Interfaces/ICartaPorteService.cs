@@ -14,6 +14,7 @@ namespace HG.CFDI.CORE.Interfaces
         public Task<bool> putCartaPorte(string database, cartaPorteCabecera cp);
         public Task<GeneralResponse<string>> changeStatusCartaPorteAsync(int no_guia, string num_guia, string compania, int EstatusTimbrado, string mensajeTimbrado, int sistemaTimbrado);
         public Task fechaSolicitudTimbradoAsync(int no_guia, string compania);
+        public Task<bool> TrySetTimbradoEnProcesoAsync(int no_guia, string compania);
         public Task<GeneralResponse<string>> insertError(int no_guia, string num_guia, string compania, string error, int? idOperador_Lis, string? idUnidad_Lis, string? idRemolque_Lis);
         public Task<UniqueResponse> timbrarConLis(ICartaPorteServiceApi cartaPorteServiceApi, cartaPorteCabecera cartaPorte);
         public Task<UniqueResponse> timbrarConInvoiceOne(cartaPorteCabecera ccps, string database);

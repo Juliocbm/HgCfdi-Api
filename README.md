@@ -17,3 +17,5 @@ POST /api/Cfdi/TimbraRemision?database={bd}&remision={remision}&sistemaTimbrado=
 
 Si se proporciona `sistemaTimbrado` con un valor válido (1..3) éste se asignará
 al modelo y se utilizará para seleccionar el PAC.
+
+Al invocar este endpoint, la API intentará actualizar la guía a estatus **En proceso de timbrado**. Si la operación no afecta registros, se responde con `409 Conflict` indicando que la guía ya está en proceso o timbrada.

@@ -103,6 +103,38 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
+        public async Task<bool> TrySetTimbradoEnProcesoAsync(int no_guia, string compania)
+        {
+            string server = string.Empty;
+            switch (compania)
+            {
+                case "hg":
+                    server = "server2019";
+                    break;
+                default:
+                    server = "server2019";
+                    break;
+            }
+
+            var options = _dbContextFactory.CreateDbContextOptions(server);
+
+            using (var context = new CfdiDbContext(options))
+            {
+                var noGuiaParam = new SqlParameter("@no_guia", no_guia);
+                var companiaParam = new SqlParameter("@compania", compania);
+
+                var rows = await context.Database.ExecuteSqlRawAsync(@"UPDATE cartaPorteCabeceras
+SET estatusTimbrado = 1,
+    mensajeTimbrado = 'En proceso de timbrado.',
+    fechaSolicitudTimbrado = GETDATE()
+WHERE no_guia = @no_guia
+  AND compania = @compania
+  AND estatusTimbrado NOT IN (1,3);", noGuiaParam, companiaParam);
+
+                return rows > 0;
+            }
+        }
+
         public async Task<bool> putCartaPorte(string database, cartaPorteCabecera cp)
         {
             string server = string.Empty;

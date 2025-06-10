@@ -73,39 +73,17 @@ namespace HG.CFDI.API.Controllers
                 // Si el parámetro es válido, se usa para decidir el PAC
                 cartaPorte.sistemaTimbrado = sistemaTimbrado;
 
-                if (cartaPorte.estatusTimbrado == 1)
+
+                var setResult = await _cartaPorteService.TrySetTimbradoEnProcesoAsync(cartaPorte.no_guia, cartaPorte.compania);
+
+                if (!setResult)
                 {
-                    _logger.LogInformation($"Guía {remision} ya está en proceso de timbrado.");
-                    return Ok(new UniqueResponse()
+                    _logger.LogInformation($"Guía {remision} ya está en proceso o timbrada.");
+                    return Conflict(new UniqueResponse()
                     {
                         IsSuccess = false,
-                        Mensaje = $"Guía {remision} está actualmente en proceso de timbrado."
+                        Mensaje = $"Guía {remision} ya está en proceso de timbrado o timbrada."
                     });
-                }
-
-                if (cartaPorte.estatusTimbrado == 3 || cartaPorte.archivoCFDi != null)
-                {
-                    _logger.LogInformation($"Guía {remision} ya se encuentra timbrada.");
-                    if (cartaPorte.archivoCFDi != null)
-                    {
-                        return Ok(new UniqueResponse()
-                        {
-                            IsSuccess = false,
-                            Mensaje = $"Guía {remision} ya está timbrada.",
-                            XmlByteArray = cartaPorte.archivoCFDi.xml.Length > 1 ? cartaPorte.archivoCFDi.xml : new byte[0],
-                            PdfByteArray = cartaPorte.archivoCFDi.pdf.Length > 1 ? cartaPorte.archivoCFDi.pdf : new byte[0]
-                        });
-                    }
-                    else
-                    {
-                        return Ok(new UniqueResponse()
-                        {
-                            IsSuccess = false,
-                            Mensaje = $"Guía {remision} ya está timbrada, sin xml y pdf.",
-                            XmlByteArray = new byte[0],
-                            PdfByteArray = new byte[0]
-                        });
-                    }                  
                 }
 
                 if (cartaPorte.estatusTimbrado == 5)
@@ -135,9 +113,6 @@ namespace HG.CFDI.API.Controllers
 
                 // Actualizar estatus a "En proceso de timbrado"
                 _logger.LogInformation($"Iniciando timbrado de la guía {remision}");
-
-                await _cartaPorteService.fechaSolicitudTimbradoAsync(cartaPorte.no_guia, cartaPorte.compania);
-                await _cartaPorteService.changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 1, "En proceso de timbrado.", cartaPorte.sistemaTimbrado);
 
                 // Eliminar posibles errores anteriores
                 await _cartaPorteService.deleteErrors(cartaPorte.no_guia, cartaPorte.compania);
