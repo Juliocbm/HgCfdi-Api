@@ -444,12 +444,10 @@ namespace HG.CFDI.SERVICE.Services
                     try
                     {
                         responseServicio = await client.emitirFacturaAsync(requestUnique.request);
-                        client.Close();
                     }
-                    catch
+                    finally
                     {
-                        client.Abort();
-                        throw;
+                        try { await client.CloseAsync(); } catch { client.Abort(); }
                     }
                 }
 
@@ -473,6 +471,7 @@ namespace HG.CFDI.SERVICE.Services
                         respuesta.PdfByteArray,
                         responseServicio.uuid,
                         database));
+
                 }
 
                 return respuesta;
