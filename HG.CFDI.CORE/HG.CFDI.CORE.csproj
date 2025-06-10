@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\CartaPorteEF\**" />
+    <Compile Remove="Models\DocumentoTimbradoEF\**" />
+    <Compile Remove="Models\RyderApi\**" />
+    <Compile Remove="Models\TipoCambioEF\**" />
+    <EmbeddedResource Remove="Models\CartaPorteEF\**" />
+    <EmbeddedResource Remove="Models\DocumentoTimbradoEF\**" />
+    <EmbeddedResource Remove="Models\RyderApi\**" />
+    <EmbeddedResource Remove="Models\TipoCambioEF\**" />
+    <None Remove="Models\CartaPorteEF\**" />
+    <None Remove="Models\DocumentoTimbradoEF\**" />
+    <None Remove="Models\RyderApi\**" />
+    <None Remove="Models\TipoCambioEF\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="cfdiContext.cs" />
+    <Compile Remove="CfdiDbContext.cs" />
+    <Compile Remove="Interfaces\IApiCcpRyder.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.20" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.20" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\libs\Cfdi.Data\CFDI.Data.csproj" />
+    <ProjectReference Include="..\libs\RyderApiClient\Ryder.Api.Client.csproj" />
+  </ItemGroup>
+
+</Project>

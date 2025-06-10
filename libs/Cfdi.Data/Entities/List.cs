@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace CFDI.Data.Entities;
+
+public partial class List
+{
+    public long id { get; set; }
+
+    public string Key { get; set; } = null!;
+
+    public string? Value { get; set; }
+
+    public DateTime? ExpireAt { get; set; }
+}

@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HG.CFDI.API", "HG.CFDI.API.csproj", "{11C612BF-73AB-BF73-43F1-22319A3FA6C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HG.CFDI.SERVICE", "HG.CFDI.SERVICE\HG.CFDI.SERVICE.csproj", "{27ABB896-EF44-8038-BA2A-F44B745A807F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HG.CFDI.DATA", "HG.CFDI.DATA\HG.CFDI.DATA.csproj", "{60D6C792-6754-0DA6-2255-B96449A02FE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HG.CFDI.CORE", "HG.CFDI.CORE\HG.CFDI.CORE.csproj", "{374118EF-08BA-C4BC-8459-71F8CFAC075A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ryder.Api.Client", "libs\RyderApiClient\Ryder.Api.Client.csproj", "{C80870BA-A891-4A79-5E5F-5D780F589266}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CFDI.Data", "libs\Cfdi.Data\CFDI.Data.csproj", "{7D97682C-AA6B-8054-2CEB-1D395A09C359}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11C612BF-73AB-BF73-43F1-22319A3FA6C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11C612BF-73AB-BF73-43F1-22319A3FA6C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11C612BF-73AB-BF73-43F1-22319A3FA6C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11C612BF-73AB-BF73-43F1-22319A3FA6C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27ABB896-EF44-8038-BA2A-F44B745A807F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27ABB896-EF44-8038-BA2A-F44B745A807F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27ABB896-EF44-8038-BA2A-F44B745A807F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27ABB896-EF44-8038-BA2A-F44B745A807F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60D6C792-6754-0DA6-2255-B96449A02FE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60D6C792-6754-0DA6-2255-B96449A02FE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60D6C792-6754-0DA6-2255-B96449A02FE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60D6C792-6754-0DA6-2255-B96449A02FE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{374118EF-08BA-C4BC-8459-71F8CFAC075A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{374118EF-08BA-C4BC-8459-71F8CFAC075A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{374118EF-08BA-C4BC-8459-71F8CFAC075A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{374118EF-08BA-C4BC-8459-71F8CFAC075A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C80870BA-A891-4A79-5E5F-5D780F589266}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C80870BA-A891-4A79-5E5F-5D780F589266}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C80870BA-A891-4A79-5E5F-5D780F589266}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C80870BA-A891-4A79-5E5F-5D780F589266}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5EF03228-2287-4D5F-A9D6-516940874913}
+	EndGlobalSection
+EndGlobal

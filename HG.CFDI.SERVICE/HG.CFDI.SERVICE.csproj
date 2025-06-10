@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+	  <PreserveCompilationContext>true</PreserveCompilationContext>
+	  <CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
+	  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	  <!-- opcional para debug -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Connected Services\InvoiceOneTest\**" />
+    <EmbeddedResource Remove="Connected Services\InvoiceOneTest\**" />
+    <None Remove="Connected Services\InvoiceOneTest\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Services\ApiCcpRyder.cs" />
+    <Compile Remove="Services\referencesInvoiceOne.cs" />
+    <Compile Remove="Services\usoCfdi_RegimenFiscal.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="logotipos\chTransportaciones.png" />
+    <None Remove="logotipos\hgTransportaciones.png" />
+    <None Remove="logotipos\lindaTransportaciones.png" />
+    <None Remove="logotipos\rlTransportaciones.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="logotipos\chTransportaciones.png" />
+    <EmbeddedResource Include="logotipos\hgTransportaciones.png" />
+    <EmbeddedResource Include="logotipos\lindaTransportaciones.png" />
+    <EmbeddedResource Include="logotipos\rlTransportaciones.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CFDI.BuildPdf" Version="1.0.2" />
+    <PackageReference Include="Interceptor.AOP.AspNetCore" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
+    <PackageReference Include="System.ServiceModel.Federation" Version="6.2.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="6.2.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="6.2.0" />
+    <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HG.CFDI.CORE\HG.CFDI.CORE.csproj" />
+    <ProjectReference Include="..\HG.CFDI.DATA\HG.CFDI.DATA.csproj" />
+  </ItemGroup>
+
+	<PropertyGroup>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
+		<PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+	</ItemGroup>
+</Project>
