@@ -8,8 +8,10 @@ using HG.CFDI.CORE.Models;
 using HG.CFDI.SERVICE.Services.ValidacionesSat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -34,6 +36,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
         private readonly LisApiOptions _lisApiOptions;
         private readonly RyderApiOptions _ryderApiOptions;
         private readonly List<compania> _companias;
+        private readonly IMemoryCache _memoryCache;
 
         public DocumentosService(ICartaPorteRepository cartaPorteRepository,
             IConfiguration configuration,
@@ -44,7 +47,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
             IOptions<RyderApiOptions> ryderApiOptions,
             IOptions<List<compania>> companiaOptions,
             //IApiCcpRyder apiCcpRyder,
-            ILogger<CartaPorteService> logger)
+            ILogger<CartaPorteService> logger,
+            IMemoryCache memoryCache)
         {
             _configuration = configuration;
             _cartaPorteRepository = cartaPorteRepository;
@@ -57,6 +61,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
             _sufijoArchivoCfdi = configuration.GetValue<string>("SufijoNombreCfdi");
             //_apiCcpRyder = apiCcpRyder;
             _logger = logger;
+            _memoryCache = memoryCache;
         }
 
         public archivoCFDi CreateArchivoCFDi(cartaPorteCabecera cartaPorte, byte[] xml, byte[] pdf, string uuid)
@@ -177,6 +182,11 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
                 if (!_mapaBasesDatos.TryGetValue(database.ToLower(), out string? nombreArchivo))
                     throw new ArgumentException($"Base de datos no reconocida: {database}");
 
+                if (_memoryCache.TryGetValue(nombreArchivo, out string? base64))
+                {
+                    return base64!;
+                }
+
                 string resourceName = $"HG.CFDI.SERVICE.logotipos.{nombreArchivo}"; // Ajusta a tu namespace real
 
                 var assembly = Assembly.GetExecutingAssembly();
@@ -188,12 +198,15 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
                 stream.CopyTo(ms);
                 byte[] imageBytes = ms.ToArray();
 
-                return Convert.ToBase64String(imageBytes);
+                base64 = Convert.ToBase64String(imageBytes);
+                _memoryCache.Set(nombreArchivo, base64);
+
+                return base64;
             }
             catch (System.Exception)
             {
                 return null;
-            }          
+            }
         }
 
 
