@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ryder.Api.Client", "libs\Ry
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CFDI.Data", "libs\Cfdi.Data\CFDI.Data.csproj", "{7D97682C-AA6B-8054-2CEB-1D395A09C359}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HG.CFDI.Tests", "HG.CFDI.Tests\HG.CFDI.Tests.csproj", "{77456A52-7583-465C-9594-E2FDACBBFA47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D97682C-AA6B-8054-2CEB-1D395A09C359}.Release|Any CPU.Build.0 = Release|Any CPU
+                {77456A52-7583-465C-9594-E2FDACBBFA47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {77456A52-7583-465C-9594-E2FDACBBFA47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                {77456A52-7583-465C-9594-E2FDACBBFA47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+                {77456A52-7583-465C-9594-E2FDACBBFA47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
