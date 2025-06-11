@@ -131,12 +131,12 @@ namespace HG.CFDI.DATA.Repositories
                 var companiaParam = new SqlParameter("@compania", compania);
 
                 var rows = await context.Database.ExecuteSqlRawAsync(@"UPDATE cartaPorteCabeceras
-SET estatusTimbrado = 1,
-    mensajeTimbrado = 'En proceso de timbrado.',
-    fechaSolicitudTimbrado = GETDATE()
-WHERE no_guia = @no_guia
-  AND compania = @compania
-  AND estatusTimbrado NOT IN (1,3);", noGuiaParam, companiaParam);
+                    SET estatusTimbrado = 1,
+                        mensajeTimbrado = 'En proceso de timbrado.',
+                        fechaSolicitudTimbrado = GETDATE()
+                    WHERE no_guia = @no_guia
+                      AND compania = @compania
+                      AND estatusTimbrado NOT IN (1,3);", noGuiaParam, companiaParam);
 
                 return rows > 0;
             }

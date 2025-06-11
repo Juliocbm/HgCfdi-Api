@@ -436,7 +436,7 @@ namespace HG.CFDI.SERVICE.Services
                 using (var client = new EmisionServiceClient())
                 {
                     var retryPolicy = Policy
-                        .Handle<Exception>()
+                        .Handle<System.Exception>()
                         .WaitAndRetryAsync(_retryOptions.MaxEmitirFacturaRetries,
                             retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                             (ex, ts, attempt, ctx) =>
@@ -448,7 +448,7 @@ namespace HG.CFDI.SERVICE.Services
                     {
                         responseServicio = await retryPolicy.ExecuteAsync(() => client.emitirFacturaAsync(requestUnique.request));
                     }
-                    catch (Exception ex)
+                    catch (System.Exception ex)
                     {
                         _logger.LogError(ex, "Error al invocar emitirFacturaAsync");
                         TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 5, "Sin respuesta de BuzonE", cartaPorte.sistemaTimbrado));
