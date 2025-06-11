@@ -83,9 +83,17 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
             {
                 var servidores = new[] { "server2019", "server2008" };
 
-                foreach (var server in servidores)
+                var tareas = servidores.Select(async server =>
                 {
-                    var success = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, server);
+                    bool success = false;
+                    try
+                    {
+                        success = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, server);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error insertando documentos en {server}");
+                    }
 
                     if (!success)
                     {
@@ -94,7 +102,11 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
 
                         //await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, msg, null, null, null);
                     }
-                }
+
+                    return success;
+                });
+
+                await Task.WhenAll(tareas);
             }
             catch (System.Exception ex)
             {
