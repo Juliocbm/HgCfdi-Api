@@ -27,6 +27,8 @@ using HG.CFDI.SERVICE.Services.Timbrado.Ryder;
 using CFDI.Data.Entities;
 //VERSION PROD
 
+using System.Linq;
+
 //VERSION TEST
 //using static InvoiceOneTest.TimbreCFDISoapClient;
 //VERSION TEST
@@ -568,30 +570,32 @@ namespace HG.CFDI.SERVICE.Services
             {
                 var archivo = _documentosService.CreateArchivoCFDi(cartaPorte, xmlBytes, pdfBytes, uuid);
 
-                bool successDocs2019 = false;
-                try
+                var servidores = new[] { "server2019", "server2008" };
+
+                var tareasInsercion = servidores.Select(async server =>
                 {
-                    successDocs2019 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2019");
-                }
-                catch (System.Exception ex)
-                {
-                    _logger.LogError(ex, "Error insertando documentos en server2019");
-                }
+                    bool success = false;
+                    try
+                    {
+                        success = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, server);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error insertando documentos en {server}");
+                    }
+                    return (server, success);
+                }).ToList();
+
+                var resultados = await Task.WhenAll(tareasInsercion);
+
+                bool successDocs2019 = resultados.First(r => r.server == "server2019").success;
                 if (!successDocs2019)
                 {
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2019", null, null, null));
                     TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado));
                 }
 
-                bool successDocs2008 = false;
-                try
-                {
-                    successDocs2008 = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, "server2008");
-                }
-                catch (System.Exception ex)
-                {
-                    _logger.LogError(ex, "Error insertando documentos en server2008");
-                }
+                bool successDocs2008 = resultados.First(r => r.server == "server2008").success;
                 if (!successDocs2008)
                 {
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2008", null, null, null));
