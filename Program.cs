@@ -75,6 +75,8 @@ builder.Services.AddScoped<ICartaPorteServiceApi, CartaPorteServiceApi>();
 builder.Services.AddScoped<IRyderApiClient, RyderApiClient>();
 builder.Services.AddScoped<ITipoCambioService, TipoCambioService>();
 builder.Services.AddScoped<ITipoCambioRepository, TipoCambioRepository>();
+builder.Services.AddScoped<ILiquidacionService, LiquidacionService>();
+builder.Services.AddScoped<ILiquidacionRepository, LiquidacionRepository>();
 
 //Appsettings
 builder.Services.Configure<List<FirmaDigitalOptions>>(builder.Configuration.GetSection("FirmaDigital"));
