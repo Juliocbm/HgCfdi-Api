@@ -187,5 +187,67 @@ namespace HG.CFDI.SERVICE.Services
 
             return Task.FromResult(request);
         }
+
+        public async Task<UniqueResponse> TimbrarLiquidacionAsync(string database, int noLiquidacion)
+        {
+            UniqueResponse respuesta = new UniqueResponse();
+
+            await _repository.ActualizarEstatusAsync(database, noLiquidacion, 1);
+
+            var liquidacion = await ObtenerLiquidacion(database, noLiquidacion);
+            if (liquidacion == null)
+            {
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "Liquidación no encontrada";
+                return respuesta;
+            }
+
+            var request = await ConstruirRequestBuzonEAsync(liquidacion, database);
+
+            await _repository.InsertarHistoricoAsync(database, noLiquidacion, 1, null, null, null);
+
+            try
+            {
+                BuzonE.responseBE responseServicio;
+                using (var client = new EmisionServiceClient())
+                {
+                    responseServicio = await client.emitirFacturaAsync(request);
+                    await client.CloseAsync();
+                }
+
+                if (responseServicio != null && responseServicio.code == "BE-EMS.200")
+                {
+                    byte[] xmlBytes = System.Text.Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
+                    await _repository.ActualizarEstatusAsync(database, noLiquidacion, 3);
+                    await _repository.InsertarHistoricoAsync(database, noLiquidacion, 3, xmlBytes, null, responseServicio.uuid);
+
+                    respuesta.IsSuccess = true;
+                    respuesta.Mensaje = "Timbrado exitoso";
+                    respuesta.XmlByteArray = xmlBytes;
+                    respuesta.PdfByteArray = Array.Empty<byte>();
+                }
+                else
+                {
+                    await _repository.ActualizarEstatusAsync(database, noLiquidacion, 2);
+                    await _repository.InsertarHistoricoAsync(database, noLiquidacion, 2, null, null, null);
+
+                    respuesta.IsSuccess = false;
+                    respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
+                    if (!string.IsNullOrWhiteSpace(responseServicio?.mensajeErrorTimbrado))
+                        respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                await _repository.ActualizarEstatusAsync(database, noLiquidacion, 2);
+                await _repository.InsertarHistoricoAsync(database, noLiquidacion, 2, null, null, null);
+
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "Ocurrió un error al timbrar";
+                respuesta.Errores.Add(ex.Message);
+            }
+
+            return respuesta;
+        }
     }
 }

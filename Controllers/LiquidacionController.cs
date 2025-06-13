@@ -17,8 +17,8 @@ namespace HG.CFDI.API.Controllers
             _liquidacionService = liquidacionService;
         }
 
-        [HttpGet("TimbrarLiquidacion")]
-        public async Task<IActionResult> TimbrarLiquidacion(string database, int noLiquidacion)
+        [HttpGet("GetLiquidacion")]
+        public async Task<IActionResult> GetLiquidacion(string database, int noLiquidacion)
         {
             try
             {
@@ -32,6 +32,21 @@ namespace HG.CFDI.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener la liquidación");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("TimbrarLiquidacion")]
+        public async Task<IActionResult> TimbrarLiquidacion(string database, int noLiquidacion)
+        {
+            try
+            {
+                var response = await _liquidacionService.TimbrarLiquidacionAsync(database.ToLower(), noLiquidacion);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al timbrar la liquidación");
                 return StatusCode(500, "Internal server error");
             }
         }
