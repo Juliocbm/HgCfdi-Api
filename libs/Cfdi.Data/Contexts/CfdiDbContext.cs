@@ -98,10 +98,6 @@ public partial class CfdiDbContext : DbContext
 
     public virtual DbSet<vwTipoCambio> vwTipoCambios { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=hg.sql.midireccion.com;User id=uAppCFDis;Password=U1nv01c3$.; Database=CFDisDB;TrustServerCertificate=true;");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AggregatedCounter>(entity =>
@@ -804,7 +800,7 @@ public partial class CfdiDbContext : DbContext
         {
             entity.HasKey(e => e.id).HasName("PK__cartaPor__3213E83F73BE3E68");
 
-            entity.ToTable("cartaPorteOperacionRyders");
+            entity.ToTable("cartaPorteOperacionRyder");
 
             entity.Property(e => e.compania)
                 .HasMaxLength(2)

@@ -436,7 +436,7 @@ namespace HG.CFDI.SERVICE.Services
                     catch (System.Exception ex)
                     {
                         _logger.LogError(ex, "Error al invocar emitirFacturaAsync");
-                        TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 5, "Sin respuesta de BuzonE", cartaPorte.sistemaTimbrado));
+                        TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
                         TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null));
                         return new UniqueResponse
                         {

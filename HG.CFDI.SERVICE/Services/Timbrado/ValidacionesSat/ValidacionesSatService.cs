@@ -21,11 +21,9 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
     public class ValidacionesSatService: IValidacionesSatService
     {
         private readonly ICartaPorteRepository _cartaPorteRepository;
-        //private readonly IApiCcpRyder _apiCcpRyder;
         private readonly string _sufijoArchivoCfdi;
         private readonly IConfiguration _configuration;
         private readonly ILogger<CartaPorteService> _logger;
-        //private readonly FirmaDigitalOptions _firmaDigitalOptions;
         private readonly List<FirmaDigitalOptions> _firmaDigitalOptions;
         private readonly InvoiceOneApiOptions _invoiceOneOptions;
         private readonly List<BuzonEApiCredential> _buzonEApiCredentials;
@@ -41,7 +39,6 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
             IOptions<LisApiOptions> lisApiOptions,
             IOptions<RyderApiOptions> ryderApiOptions,
             IOptions<List<compania>> companiaOptions,
-            //IApiCcpRyder apiCcpRyder,
             ILogger<CartaPorteService> logger)
         {
             _configuration = configuration;
@@ -53,7 +50,6 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
             _ryderApiOptions = ryderApiOptions.Value;
             _companias = companiaOptions.Value;
             _sufijoArchivoCfdi = configuration.GetValue<string>("SufijoNombreCfdi");
-            //_apiCcpRyder = apiCcpRyder;
             _logger = logger;
         }
 
@@ -1093,27 +1089,31 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                 {
                     case "MXN":
                         comprobante.Moneda = c_Moneda.MXN;
-                        comprobante.tipoCambio = 1;
+                        //comprobante.tipoCambio = 1;
+                        comprobante.TipoCambioSpecified = false;
                         break;
                     case "USD":
                         comprobante.Moneda = c_Moneda.USD;
-                        comprobante.tipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambioSpecified = true;
                         break;
                     case "CAD":
                         comprobante.Moneda = c_Moneda.CAD;
-                        comprobante.tipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambioSpecified = true;
                         break;
                     case "EUR":
                         comprobante.Moneda = c_Moneda.EUR;
-                        comprobante.tipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambioSpecified = true;
                         break;
                     default:
                         comprobante.Moneda = c_Moneda.MXN;
-                        comprobante.tipoCambio = 1;
+                        //comprobante.TipoCambio = 1;
+                        comprobante.TipoCambioSpecified = false;
                         break;
                 }
 
-                comprobante.TipoCambioSpecified = true;
                 comprobante.TipoDeComprobante = BuzonE.c_TipoDeComprobante.I;
                 comprobante.LugarExpedicion = ccps.cteEmisorCp;
                 comprobante.Exportacion = BuzonE.c_Exportacion.Item01;
@@ -1699,6 +1699,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                 return new UniqueRequest<RequestBE>() { IsSuccess = false, Mensaje = err.Message };
             }
         }
+
 
         public static string GenerateIdCCP()
         {

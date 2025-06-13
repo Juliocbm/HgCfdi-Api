@@ -127,7 +127,7 @@ namespace HG.CFDI.DATA.Repositories
                 var noGuiaParam = new SqlParameter("@no_guia", no_guia);
                 var companiaParam = new SqlParameter("@compania", compania);
 
-                var rows = await context.Database.ExecuteSqlRawAsync(@"UPDATE cartaPorteCabeceras
+                var rows = await context.Database.ExecuteSqlRawAsync(@"UPDATE cartaPorteCabecera
                     SET estatusTimbrado = 1,
                         mensajeTimbrado = 'En proceso de timbrado.',
                         fechaSolicitudTimbrado = GETDATE()
