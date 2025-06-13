@@ -55,62 +55,62 @@ namespace HG.CFDI.SERVICE.Services
                 }
             };
 
-            var comprobante = new Comprobante
+            var comprobante = new BuzonE.Comprobante
             {
                 Version = liquidacion.Version,
                 Serie = liquidacion.Serie,
                 Folio = liquidacion.Folio.ToString(),
                 FechaSpecified = true,
                 Fecha = liquidacion.Fecha,
-                Moneda = Enum.Parse<c_Moneda>(liquidacion.Moneda),
-                Exportacion = (c_Exportacion)Enum.Parse(typeof(c_Exportacion), "Item" + liquidacion.Exportacion),
+                Moneda = Enum.Parse<BuzonE.c_Moneda>(liquidacion.Moneda),
+                Exportacion = (BuzonE.c_Exportacion)Enum.Parse(typeof(c_Exportacion), "Item" + liquidacion.Exportacion),
                 SubTotal = liquidacion.TotalesPercepciones.TotalPercepciones,
                 DescuentoSpecified = true,
                 Descuento = liquidacion.TotalesDeducciones.TotalDeducciones,
                 Total = liquidacion.TotalesPercepciones.TotalPercepciones - liquidacion.TotalesDeducciones.TotalDeducciones,
                 LugarExpedicion = liquidacion.LugarExpedicion.ToString(),
                 MetodoPagoSpecified = true,
-                MetodoPago = Enum.Parse<c_MetodoPago>(liquidacion.MetodoPago),
-                TipoDeComprobante = Enum.Parse<c_TipoDeComprobante>(liquidacion.TipoDeComprobante)
+                MetodoPago = Enum.Parse<BuzonE.c_MetodoPago>(liquidacion.MetodoPago),
+                TipoDeComprobante = Enum.Parse<BuzonE.c_TipoDeComprobante>(liquidacion.TipoDeComprobante)
             };
 
-            comprobante.Emisor = new ComprobanteEmisor
+            comprobante.Emisor = new BuzonE.ComprobanteEmisor
             {
                 Rfc = liquidacion.Emisor.rfc,
                 Nombre = liquidacion.Emisor.nombre,
-                RegimenFiscal = (c_RegimenFiscal)Enum.Parse(typeof(c_RegimenFiscal), "Item" + liquidacion.Emisor.claveSAT)
+                RegimenFiscal = (BuzonE.c_RegimenFiscal)Enum.Parse(typeof(BuzonE.c_RegimenFiscal), "Item" + liquidacion.Emisor.claveSAT)
             };
 
-            comprobante.Receptor = new ComprobanteReceptor
+            comprobante.Receptor = new BuzonE.ComprobanteReceptor
             {
                 Rfc = liquidacion.Receptor.rfc,
                 Nombre = liquidacion.Receptor.nombre,
                 DomicilioFiscalReceptor = liquidacion.Receptor.DomicilioFiscalReceptor,
-                RegimenFiscalReceptor = (c_RegimenFiscal)Enum.Parse(typeof(c_RegimenFiscal), "Item" + liquidacion.Receptor.RegimenFiscalReceptor),
-                UsoCFDI = (c_UsoCFDI)Enum.Parse(typeof(c_UsoCFDI), liquidacion.Receptor.UsoCFDI)
+                RegimenFiscalReceptor = (BuzonE.c_RegimenFiscal)Enum.Parse(typeof(BuzonE.c_RegimenFiscal), "Item" + liquidacion.Receptor.RegimenFiscalReceptor),
+                UsoCFDI = (BuzonE.c_UsoCFDI)Enum.Parse(typeof(BuzonE.c_UsoCFDI), liquidacion.Receptor.UsoCFDI)
             };
 
             comprobante.Conceptos = new[]
             {
-                new ComprobanteConcepto
+                new BuzonE.ComprobanteConcepto
                 {
                     ClaveProdServ = "84111505",
                     Cantidad = 1m,
-                    ClaveUnidad = c_ClaveUnidad.ACT,
+                    ClaveUnidad = BuzonE.c_ClaveUnidad.ACT,
                     Descripcion = "Pago de nómina",
                     ValorUnitario = liquidacion.TotalesPercepciones.TotalPercepciones,
                     Importe = liquidacion.TotalesPercepciones.TotalPercepciones,
                     DescuentoSpecified = true,
                     Descuento = liquidacion.TotalesDeducciones.TotalDeducciones,
-                    ObjetoImp = c_ObjetoImp.Item01
+                    ObjetoImp = BuzonE.c_ObjetoImp.Item01
                 }
             };
 
-            var complemento = new ComprobanteComplemento();
-            var nomina = new Nomina
+            var complemento = new BuzonE.ComprobanteComplemento();
+            var nomina = new BuzonE.Nomina
             {
                 Version = liquidacion.Nomina.Version,
-                TipoNomina = (c_TipoNomina)Enum.Parse(typeof(c_TipoNomina), liquidacion.Nomina.TipoNomina),
+                TipoNomina = (BuzonE.c_TipoNomina)Enum.Parse(typeof(BuzonE.c_TipoNomina), liquidacion.Nomina.TipoNomina),
                 FechaPago = liquidacion.Nomina.FechaPago,
                 FechaInicialPago = liquidacion.Nomina.FechaInicialPago,
                 FechaFinalPago = liquidacion.Nomina.FechaFinalPago,
@@ -121,11 +121,11 @@ namespace HG.CFDI.SERVICE.Services
                 TotalDeducciones = liquidacion.TotalesDeducciones.TotalDeducciones
             };
 
-            nomina.Percepciones = new NominaPercepciones
+            nomina.Percepciones = new BuzonE.NominaPercepciones
             {
-                Percepcion = liquidacion.Percepciones.Select(p => new NominaPercepcionesPercepcion
+                Percepcion = liquidacion.Percepciones.Select(p => new BuzonE.NominaPercepcionesPercepcion
                 {
-                    TipoPercepcion = (c_TipoPercepcion)Enum.Parse(typeof(c_TipoPercepcion), "Item" + p.TipoPercepcion),
+                    TipoPercepcion = (BuzonE.c_TipoPercepcion)Enum.Parse(typeof(BuzonE.c_TipoPercepcion), "Item" + p.TipoPercepcion),
                     Clave = p.Clave,
                     Concepto = p.Concepto,
                     ImporteGravado = p.ImporteGravado,
@@ -137,11 +137,11 @@ namespace HG.CFDI.SERVICE.Services
                 TotalExento = liquidacion.TotalesPercepciones.TotalExento
             };
 
-            nomina.Deducciones = new NominaDeducciones
+            nomina.Deducciones = new BuzonE.NominaDeducciones
             {
-                Deduccion = liquidacion.Deducciones.Select(d => new NominaDeduccionesDeduccion
+                Deduccion = liquidacion.Deducciones.Select(d => new BuzonE.NominaDeduccionesDeduccion
                 {
-                    TipoDeduccion = (c_TipoDeduccion)Enum.Parse(typeof(c_TipoDeduccion), "Item" + d.TipoDeduccion.PadLeft(3, '0')),
+                    TipoDeduccion = (BuzonE.c_TipoDeduccion)Enum.Parse(typeof(BuzonE.c_TipoDeduccion), "Item" + d.TipoDeduccion.PadLeft(3, '0')),
                     Clave = d.Clave.ToString("000000"),
                     Concepto = d.Concepto,
                     Importe = d.Importe
@@ -152,33 +152,33 @@ namespace HG.CFDI.SERVICE.Services
                 TotalImpuestosRetenidos = liquidacion.TotalesDeducciones.TotalImpuestosRetenidos
             };
 
-            nomina.Emisor = new NominaEmisor
+            nomina.Emisor = new BuzonE.NominaEmisor
             {
-                RegistroPatronal = "D3814590104"
+                RegistroPatronal = liquidacion.ComplementoEmisor.RegistroPatronal
             };
 
-            nomina.Receptor = new NominaReceptor
+            nomina.Receptor = new BuzonE.NominaReceptor
             {
                 Curp = liquidacion.ComplementoReceptor.Curp,
                 NumSeguridadSocial = liquidacion.ComplementoReceptor.NumSeguridadSocial,
                 FechaInicioRelLaboralSpecified = true,
                 FechaInicioRelLaboral = liquidacion.ComplementoReceptor.FechaInicioRelLaboral,
                 Antigüedad = liquidacion.ComplementoReceptor.Antiguedad,
-                TipoContrato = (c_TipoContrato)Enum.Parse(typeof(c_TipoContrato), "Item" + liquidacion.ComplementoReceptor.TipoContrato),
-                TipoRegimen = (c_TipoRegimen)Enum.Parse(typeof(c_TipoRegimen), "Item" + liquidacion.ComplementoReceptor.TipoRegimen),
+                TipoContrato = (BuzonE.c_TipoContrato)Enum.Parse(typeof(BuzonE.c_TipoContrato), "Item" + liquidacion.ComplementoReceptor.TipoContrato),
+                TipoRegimen = (BuzonE.c_TipoRegimen)Enum.Parse(typeof(BuzonE.c_TipoRegimen), "Item" + liquidacion.ComplementoReceptor.TipoRegimen),
                 NumEmpleado = liquidacion.ComplementoReceptor.num_empleado,
                 Departamento = liquidacion.ComplementoReceptor.Departamento,
                 Puesto = liquidacion.ComplementoReceptor.Puesto,
                 RiesgoPuestoSpecified = true,
-                RiesgoPuesto = (c_RiesgoPuesto)Enum.Parse(typeof(c_RiesgoPuesto), "Item" + liquidacion.ComplementoReceptor.RiesgoPuesto),
-                PeriodicidadPago = (c_PeriodicidadPago)Enum.Parse(typeof(c_PeriodicidadPago), "Item" + liquidacion.ComplementoReceptor.PeriodicidadPago),
+                RiesgoPuesto = (BuzonE.c_RiesgoPuesto)Enum.Parse(typeof(BuzonE.c_RiesgoPuesto), "Item" + liquidacion.ComplementoReceptor.RiesgoPuesto),
+                PeriodicidadPago = (BuzonE.c_PeriodicidadPago)Enum.Parse(typeof(BuzonE.c_PeriodicidadPago), "Item" + liquidacion.ComplementoReceptor.PeriodicidadPago),
                 BancoSpecified = !string.IsNullOrEmpty(liquidacion.ComplementoReceptor.Banco),
-                Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.Banco) ? c_Banco.Item002 : (c_Banco)Enum.Parse(typeof(c_Banco), "Item" + liquidacion.ComplementoReceptor.Banco),
+                Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.Banco) ? BuzonE.c_Banco.Item002 : (BuzonE.c_Banco)Enum.Parse(typeof(BuzonE.c_Banco), "Item" + liquidacion.ComplementoReceptor.Banco),
                 SalarioBaseCotAporSpecified = true,
                 SalarioBaseCotApor = liquidacion.ComplementoReceptor.SalarioBaseCotApor,
                 SalarioDiarioIntegradoSpecified = true,
                 SalarioDiarioIntegrado = liquidacion.ComplementoReceptor.SalarioDiarioIntegrado,
-                ClaveEntFed = (c_Estado)Enum.Parse(typeof(c_Estado), liquidacion.ComplementoReceptor.ClaveEntFed)
+                ClaveEntFed = (BuzonE.c_Estado)Enum.Parse(typeof(BuzonE.c_Estado), liquidacion.ComplementoReceptor.ClaveEntFed)
             };
 
             complemento.Nomina = new[] { nomina };

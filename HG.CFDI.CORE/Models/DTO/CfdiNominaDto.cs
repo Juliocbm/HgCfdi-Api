@@ -26,6 +26,7 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
         public TotalesPercepcion TotalesPercepciones { get; set; }
         public Deduccion[] Deducciones { get; set; }
         public TotalesDeduccion TotalesDeducciones { get; set; }
+        public ComplementoEmisor ComplementoEmisor{ get; set; }
         public ComplementoReceptor ComplementoReceptor { get; set; }
     }
     public class Emisor
@@ -87,6 +88,12 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
         public decimal TotalDeducciones { get; set; }
     }
 
+    public class ComplementoEmisor
+    {
+        public string rfc { get; set; }
+        public string RegistroPatronal { get; set; }
+    }    
+    
     public class ComplementoReceptor
     {
         public string Curp { get; set; }
