@@ -90,7 +90,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
                     {
                         success = await _cartaPorteRepository.InsertDocumentosTimbrados(archivo, server);
                     }
-                    catch (Exception ex)
+                    catch (System.Exception ex)
                     {
                         _logger.LogError(ex, $"Error insertando documentos en {server}");
                     }

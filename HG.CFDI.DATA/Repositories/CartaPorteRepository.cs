@@ -6,9 +6,6 @@ using HG.CFDI.CORE.Models;
 using HG.CFDI.CORE.Models.LisApi.ModelRequestLis.CartaPorte;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices;
-using System;
-//using HG.CFDI.CORE.Models.CartaPorteEF;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using CFDI.Data.Contexts;
@@ -23,7 +20,7 @@ namespace HG.CFDI.DATA.Repositories
         private readonly IMapper _mapper;
         private readonly ILogger<CartaPorteRepository> _logger;
 
-        public CartaPorteRepository(CfdiDbContext context, IDbContextFactory dbContextFactory, IMapper mapper, ILogger<CartaPorteRepository> logger)
+        public CartaPorteRepository(IDbContextFactory dbContextFactory, IMapper mapper, ILogger<CartaPorteRepository> logger)
         {
             _dbContextFactory = dbContextFactory;
             _mapper = mapper;

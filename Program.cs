@@ -1,6 +1,3 @@
-using Hangfire;
-using HG.CFDI.API.Jobs.TransferenciaCartaPorte;
-//using HG.CFDI.API.Models;
 using HG.CFDI.CORE.ContextFactory;
 using HG.CFDI.CORE.Interfaces;
 using HG.CFDI.DATA.LisApi;
@@ -20,7 +17,6 @@ using HG.CFDI.SERVICE.Services.Timbrado.Ryder;
 using HG.CFDI.SERVICE.Services.ValidacionesSat;
 using HG.CFDI.SERVICE.Services.Timbrado.Documentos;
 using Interceptor.AOP.AspNetCore;
-using CFDI.Data.Contexts;
 using Ryder.Api.Client.DependencyInjection;
 using Ryder.Api.Client.Services;
 
@@ -57,19 +53,6 @@ var connectionString = builder.Configuration.GetConnectionString("timbradoIntegr
 builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-builder.Services.AddDbContext<CfdiDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
-// Configuración de Hangfire
-builder.Services.AddHangfire(config =>
-    config.UseSqlServerStorage(connectionString));
-
-builder.Services.AddHangfireServer(options =>
-{
-    options.WorkerCount = 1;  
-    options.SchedulePollingInterval = TimeSpan.FromSeconds(30); // Intervalo de sondeo
-});
-
 builder.Services.AddMemoryCache();
 
 // Configura AutoMapper
@@ -92,8 +75,6 @@ builder.Services.AddScoped<ICartaPorteServiceApi, CartaPorteServiceApi>();
 builder.Services.AddScoped<IRyderApiClient, RyderApiClient>();
 builder.Services.AddScoped<ITipoCambioService, TipoCambioService>();
 builder.Services.AddScoped<ITipoCambioRepository, TipoCambioRepository>();
-builder.Services.AddTransient<ImportData>();
-builder.Services.AddTransient<CartaPorteSender>();
 
 //Appsettings
 builder.Services.Configure<List<FirmaDigitalOptions>>(builder.Configuration.GetSection("FirmaDigital"));
@@ -106,17 +87,6 @@ builder.Services.Configure<List<compania>>(builder.Configuration.GetSection("Com
 
 // Registro de HttpClient
 builder.Services.AddHttpClient();
-
-//builder.Services.AddCors(options =>
-//{
-//    options.AddDefaultPolicy(policy =>
-//    {
-//        policy.WithOrigins("http://localhost:4200", "https://tools.apphgtransportaciones.com")
-//              .AllowAnyMethod()
-//              .AllowAnyHeader();
-//    });
-//});
-
 
 builder.Services.AddControllers();
 
@@ -216,102 +186,11 @@ var app = builder.Build();
 
 app.UseCors();
 
-//app.Use(async (context, next) =>
-//{
-//    var origin = context.Request.Headers["Origin"].ToString();
-//    var userAgent = context.Request.Headers["User-Agent"].ToString();
-
-//    var allowedOrigins = new[]
-//    {
-//        "http://localhost:4200",
-//        "https://tools.apphgtransportaciones.com"
-//    };
-
-//    // Si tiene Origin, validamos contra los permitidos (navegador)
-//    if (!string.IsNullOrEmpty(origin) && !allowedOrigins.Contains(origin))
-//    {
-//        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//        await context.Response.WriteAsync("Forbidden: Origin not allowed");
-//        return;
-//    }
-
-//    // Opcional: Bloquear por User-Agent patrones sospechosos (cliente .NET, curl, etc.)
-//    if (string.IsNullOrEmpty(origin) && userAgent.Contains("HttpClient"))
-//    {
-//        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//        await context.Response.WriteAsync("Forbidden: Non-browser clients are not allowed");
-//        return;
-//    }
-
-//    await next();
-//});
-
-//app.Use(async (context, next) =>
-//{
-//    var origin = context.Request.Headers["Origin"].ToString();
-//    var userAgent = context.Request.Headers["User-Agent"].ToString();
-
-//    var allowedOrigins = new[]
-//    {
-//        "http://localhost:4200",
-//        "https://tools.apphgtransportaciones.com"
-//    };
-
-//    var isBrowserRequest = !string.IsNullOrEmpty(origin);
-
-//    // Si la solicitud es desde navegador, validamos el Origin
-//    if (isBrowserRequest && !allowedOrigins.Contains(origin))
-//    {
-//        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//        await context.Response.WriteAsync("Forbidden: Origin not allowed.");
-//        return;
-//    }
-
-//    // Si la solicitud no tiene Origin (como apps .NET WinForms), las bloqueamos
-//    if (!isBrowserRequest)
-//    {
-//        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//        await context.Response.WriteAsync("Forbidden: Non-browser clients are not allowed.");
-//        return;
-//    }
-
-//    await next();
-//});
-
-
-// Inyectar y utilizar IRecurringJobManager
-var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
-
 // Después de construir la aplicación
 var serviceProvider = app.Services;
-//using (var scope = app.Services.CreateScope())
-//{
-//    var scopedServices = scope.ServiceProvider;
-//    var jobEnviaCartasPorte = scopedServices.GetRequiredService<CartaPorteSender>();
-
-//    if (jobEnviaCartasPorte != null)
-//    {
-//        //var jobId = BackgroundJob.Enqueue(() => jobEnviaCartasPorte.EnviarCartaPorte());
-//        recurringJobManager.AddOrUpdate("Envio de cartas porte", () => jobEnviaCartasPorte.EnviarCartasPorte(), Cron.MinuteInterval(3));
-//    }
-//}
-
-
-//using (var scope = app.Services.CreateScope())
-//{
-//    var scopedServices = scope.ServiceProvider;
-//    var importaCartasPorte2008 = scopedServices.GetRequiredService<ImportData>();
-
-//    if (importaCartasPorte2008 != null)
-//    {
-//        var jobId = BackgroundJob.Enqueue(() => importaCartasPorte2008.ImportarCartasPorte());
-//        recurringJobManager.AddOrUpdate("Traslado de cartas porte a server 2019", () => importaCartasPorte2008.ImportarCartasPorte(), Cron.MinuteInterval(7));
-//    }
-//}
 
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.MapControllers();
-
 app.Run();

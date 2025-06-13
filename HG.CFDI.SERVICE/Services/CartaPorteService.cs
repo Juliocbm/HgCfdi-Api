@@ -7,14 +7,10 @@ using System.Text.RegularExpressions;
 using System.Text;
 using System.Xml;
 using HG.CFDI.CORE.Models;
-using GeneraPdfBuzonE;
-//using HG.CFDI.CORE.Models.DocumentoTimbradoEF;
 using BuzonE;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
 using Polly;
 using System.Xml.Linq;
-using System.Globalization;
 using XSDToXML.Utils;
 using Microsoft.Extensions.Logging;
 using HG.CFDI.SERVICE.Utils;
@@ -27,8 +23,6 @@ using HG.CFDI.SERVICE.Services.Timbrado.Ryder;
 using CFDI.Data.Entities;
 //VERSION PROD
 
-using System.Linq;
-
 //VERSION TEST
 //using static InvoiceOneTest.TimbreCFDISoapClient;
 //VERSION TEST
@@ -39,19 +33,13 @@ namespace HG.CFDI.SERVICE.Services
     public class CartaPorteService : ICartaPorteService
     {
         private readonly ICartaPorteRepository _cartaPorteRepository;
-        //private readonly IApiCcpRyder _apiCcpRyder;
         private readonly string _sufijoArchivoCfdi;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<CartaPorteService> _logger;
-        //private readonly FirmaDigitalOptions _firmaDigitalOptions;
         private readonly List<FirmaDigitalOptions> _firmaDigitalOptions;
         private readonly InvoiceOneApiOptions _invoiceOneOptions;
-        private readonly List<BuzonEApiCredential> _buzonEApiCredentials;
         private readonly LisApiOptions _lisApiOptions;
         private readonly RyderApiOptions _ryderApiOptions;
-        private readonly List<compania> _companias;
         private readonly RetryOptions _retryOptions;
-
         private readonly IValidacionesSatService _validacionesSat;
         private readonly IRyderService _ryderService;
         private readonly IUtilsService _utilsService;
@@ -77,19 +65,14 @@ namespace HG.CFDI.SERVICE.Services
 
         ILogger<CartaPorteService> logger)
         {
-            _configuration = configuration;
             _cartaPorteRepository = cartaPorteRepository;
             _firmaDigitalOptions = firmaDigitalOptions.Value;
             _invoiceOneOptions = invoiceOneOptions.Value;
-            _buzonEApiCredentials = buzonEOptions.Value;
             _lisApiOptions = lisApiOptions.Value;
             _ryderApiOptions = ryderApiOptions.Value;
             _retryOptions = retryOptions.Value;
-            _companias = companiaOptions.Value;
             _sufijoArchivoCfdi = configuration.GetValue<string>("SufijoNombreCfdi");
-            //_apiCcpRyder = apiCcpRyder;
             _logger = logger;
-
             _ryderService = ryderService;
             _validacionesSat = validacionesSat;
             _utilsService = utilsService;

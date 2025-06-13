@@ -25,7 +25,7 @@ namespace HG.CFDI.DATA.Repositories
         private readonly IDbContextFactory _dbContextFactory;
         private readonly ILogger<CartaPorteRepository> _logger;
 
-        public TipoCambioRepository(CfdiDbContext context, IDbContextFactory dbContextFactory, IMapper mapper, ILogger<CartaPorteRepository> logger)
+        public TipoCambioRepository(IDbContextFactory dbContextFactory, IMapper mapper, ILogger<CartaPorteRepository> logger)
         {
             _dbContextFactory = dbContextFactory;
             _logger = logger;
