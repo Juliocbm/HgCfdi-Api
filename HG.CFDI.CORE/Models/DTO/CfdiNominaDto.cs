@@ -19,16 +19,15 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
         public string MetodoPago { get; set; }
         public string TipoDeComprobante { get; set; }
 
-        public List<Emisor> Emisor { get; set; }
-        public List<Receptor> Receptor { get; set; }
-        public List<Nomina> Nomina { get; set; }
-        public List<Percepcion> Percepciones { get; set; }
-        public List<TotalesPercepcion> TotalesPercepciones { get; set; }
-        public List<Deduccion> Deducciones { get; set; }
-        public List<TotalesDeduccion> TotalesDeducciones { get; set; }
-        public List<ComplementoReceptor> ComplementoReceptor { get; set; }       
+        public Emisor Emisor { get; set; }
+        public Receptor Receptor { get; set; }
+        public Nomina Nomina { get; set; }
+        public Percepcion[] Percepciones { get; set; }
+        public TotalesPercepcion TotalesPercepciones { get; set; }
+        public Deduccion[] Deducciones { get; set; }
+        public TotalesDeduccion TotalesDeducciones { get; set; }
+        public ComplementoReceptor ComplementoReceptor { get; set; }
     }
-
     public class Emisor
     {
         public string rfc { get; set; }
