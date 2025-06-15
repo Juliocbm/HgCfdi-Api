@@ -25,8 +25,12 @@ namespace HG.CFDI.SERVICE.Services
             _buzonEApiCredentials = buzonEOptions.Value;
         }
 
-        public async Task<CfdiNomina?> ObtenerLiquidacion(string database, int noLiquidacion)
+        public async Task<CfdiNomina?> ObtenerLiquidacion(int idCompania, int noLiquidacion)
         {
+            string? database = ObtenerDatabase(idCompania);
+            if (string.IsNullOrEmpty(database))
+                return null;
+
             var json = await _repository.ObtenerDatosNominaJson(database, noLiquidacion);
             if (string.IsNullOrWhiteSpace(json))
                 return null;
@@ -40,15 +44,23 @@ namespace HG.CFDI.SERVICE.Services
             }
         }
      
-        public async Task<UniqueResponse> TimbrarLiquidacionAsync(string database, int noLiquidacion)
+        public async Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion)
         {
             var respuesta = new UniqueResponse();
+
+            string? database = ObtenerDatabase(idCompania);
+            if (string.IsNullOrEmpty(database))
+            {
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "idCompania no válido";
+                return respuesta;
+            }
 
             // Estatus 1 = EnProceso
             await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.EnProceso);
 
             // Obtener datos de liquidación
-            var liquidacion = await ObtenerLiquidacion(database, noLiquidacion);
+            var liquidacion = await ObtenerLiquidacion(idCompania, noLiquidacion);
             if (liquidacion == null)
             {
                 respuesta.IsSuccess = false;
@@ -125,6 +137,18 @@ namespace HG.CFDI.SERVICE.Services
             RequiereRevision = 2,
             Timbrado = 3,
             Migrada = 5
+        }
+
+        private static string? ObtenerDatabase(int idCompania)
+        {
+            return idCompania switch
+            {
+                1 => "hgdb_lis",
+                2 => "chdb_lis",
+                3 => "rldb_lis",
+                4 => "lindadb",
+                _ => null
+            };
         }
 
     }
