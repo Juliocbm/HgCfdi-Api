@@ -153,16 +153,7 @@ namespace HG.CFDI.DATA.Repositories
             await context.SaveChangesAsync();
         }
 
-        private string ObtenerNombreEstado(byte estatus) => estatus switch
-        {
-            0 => "Pendiente",
-            1 => "EnProceso",
-            2 => "ErrorValidacion",
-            3 => "ErrorPAC",
-            4 => "ErrorTransitorio",
-            5 => "Timbrado",
-            _ => "Desconocido"
-        };
+     
 
         private int ObtenerIdCompania(string database)
         {
@@ -175,6 +166,15 @@ namespace HG.CFDI.DATA.Repositories
                 _ => throw new ArgumentException($"Base de datos no reconocida: {database}")
             };
         }
-
+        public string ObtenerNombreEstado(byte estatus) => estatus switch
+        {
+            0 => "Pendiente",
+            1 => "EnProceso",
+            2 => "RequiereRevision",
+            3 => "Timbrado",
+            4 => "ErrorTransitorio",
+            5 => "Migrada",
+            _ => "Desconocido"
+        };
     }
 }
