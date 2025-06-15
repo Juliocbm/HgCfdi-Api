@@ -123,7 +123,8 @@ namespace HG.CFDI.SERVICE.Services
             EnProceso = 1,
             ErrorTransitorio = 4,
             RequiereRevision = 2,
-            Timbrado = 3
+            Timbrado = 3,
+            Migrada = 5
         }
 
     }
