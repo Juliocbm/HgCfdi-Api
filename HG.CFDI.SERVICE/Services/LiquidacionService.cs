@@ -113,7 +113,7 @@ namespace HG.CFDI.SERVICE.Services
 
         private async Task RegistrarFalloDeTimbrado(string database, int noLiquidacion)
         {
-            await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.ErrorValidacion); // Estatus 2 = ErrorValidacion
+            await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision); // Estatus 2 = ErrorValidacion
             await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, null, null, null);
         }
 
@@ -121,10 +121,8 @@ namespace HG.CFDI.SERVICE.Services
         {
             Pendiente = 0,
             EnProceso = 1,
-            ErrorValidacion = 2,
-            ErrorPAC = 2,
             ErrorTransitorio = 4,
-            RequiereRevision = 6,
+            RequiereRevision = 2,
             Timbrado = 3
         }
 
