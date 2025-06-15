@@ -56,14 +56,12 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task ActualizarEstatusAsync(string database, int idLiquidacion, byte estatus)
+        public async Task ActualizarEstatusAsync(int idCompania, int idLiquidacion, byte estatus)
         {
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
-
-            int idCompania = ObtenerIdCompania(database);
 
             using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -112,14 +110,13 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task InsertarDocTimbradoLiqAsync(string database, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
+        public async Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
         {
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
 
-            int idCompania = ObtenerIdCompania(database);
             var entidad = await context.liquidacionOperadors
                 .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
 
@@ -132,14 +129,12 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task InsertarHistoricoAsync(string database, int idLiquidacion, string liquidacionJson)
+        public async Task InsertarHistoricoAsync(int idCompania, int idLiquidacion, string liquidacionJson)
         {
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
-
-            int idCompania = ObtenerIdCompania(database);
 
             var nuevoHistorial = new liquidacionOperadorHist
             {
@@ -153,19 +148,6 @@ namespace HG.CFDI.DATA.Repositories
             await context.SaveChangesAsync();
         }
 
-     
-
-        private int ObtenerIdCompania(string database)
-        {
-            return database switch
-            {
-                "hgdb_lis" => 1,
-                "chdb_lis" => 2,
-                "rldb_lis" => 3,
-                "lindadb" => 4,
-                _ => throw new ArgumentException($"Base de datos no reconocida: {database}")
-            };
-        }
         public string ObtenerNombreEstado(byte estatus) => estatus switch
         {
             0 => "Pendiente",

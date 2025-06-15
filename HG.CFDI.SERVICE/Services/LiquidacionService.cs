@@ -16,13 +16,11 @@ namespace HG.CFDI.SERVICE.Services
     {
         private readonly ILiquidacionRepository _repository;
         private readonly IValidacionesNominaSatService _validacionesNominaSat;
-        private readonly List<BuzonEApiCredential> _buzonEApiCredentials;
 
         public LiquidacionService(IValidacionesNominaSatService validacionesNominaSat, ILiquidacionRepository repository, IOptions<List<BuzonEApiCredential>> buzonEOptions)
         {
             _repository = repository;
             _validacionesNominaSat = validacionesNominaSat;
-            _buzonEApiCredentials = buzonEOptions.Value;
         }
 
         public async Task<CfdiNomina?> ObtenerLiquidacion(int idCompania, int noLiquidacion)
@@ -48,16 +46,10 @@ namespace HG.CFDI.SERVICE.Services
         {
             var respuesta = new UniqueResponse();
 
-            string? database = ObtenerDatabase(idCompania);
-            if (string.IsNullOrEmpty(database))
-            {
-                respuesta.IsSuccess = false;
-                respuesta.Mensaje = "idCompania no válido";
-                return respuesta;
-            }
-
             // Estatus 1 = EnProceso
-            await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.EnProceso);
+            await _repository.ActualizarEstatusAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.EnProceso);
+
+            string? database = ObtenerDatabase(idCompania);
 
             // Obtener datos de liquidación
             var liquidacion = await ObtenerLiquidacion(idCompania, noLiquidacion);
@@ -73,7 +65,7 @@ namespace HG.CFDI.SERVICE.Services
 
             // Guardar histórico de la liquidación
             string liquidacionJson = JsonSerializer.Serialize(liquidacion);
-            await _repository.InsertarHistoricoAsync(database, noLiquidacion, liquidacionJson);
+            await _repository.InsertarHistoricoAsync(idCompania, noLiquidacion, liquidacionJson);
 
             try
             {
@@ -90,8 +82,8 @@ namespace HG.CFDI.SERVICE.Services
                     // Timbrado exitoso
                     byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
 
-                    await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.Timbrado); // Estatus 5 = Timbrado
-                    await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, xmlBytes, null, responseServicio.uuid);
+                    await _repository.ActualizarEstatusAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.Timbrado); // Estatus 5 = Timbrado
+                    await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, xmlBytes, null, responseServicio.uuid);
 
                     respuesta.IsSuccess = true;
                     respuesta.Mensaje = "Timbrado exitoso";
@@ -101,7 +93,7 @@ namespace HG.CFDI.SERVICE.Services
                 else
                 {
                     // Error en timbrado del PAC
-                    await RegistrarFalloDeTimbrado(database, noLiquidacion);
+                    await RegistrarFalloDeTimbrado(idCompania, noLiquidacion);
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
@@ -113,7 +105,7 @@ namespace HG.CFDI.SERVICE.Services
             catch (Exception ex)
             {
                 // Fallo inesperado
-                await RegistrarFalloDeTimbrado(database, noLiquidacion);
+                await RegistrarFalloDeTimbrado(idCompania, noLiquidacion);
 
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Ocurrió un error al timbrar";
@@ -123,10 +115,10 @@ namespace HG.CFDI.SERVICE.Services
             return respuesta;
         }
 
-        private async Task RegistrarFalloDeTimbrado(string database, int noLiquidacion)
+        private async Task RegistrarFalloDeTimbrado(int idCompania, int noLiquidacion)
         {
-            await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision); // Estatus 2 = ErrorValidacion
-            await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, null, null, null);
+            await _repository.ActualizarEstatusAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision); // Estatus 2 = ErrorValidacion
+            await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, null, null, null);
         }
 
         public enum EstatusLiquidacion : byte

@@ -6,10 +6,10 @@ namespace HG.CFDI.CORE.Interfaces
     {
         Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion);
 
-        Task ActualizarEstatusAsync(string database, int idLiquidacion, byte estatus);
+        Task ActualizarEstatusAsync(int idCompania, int idLiquidacion, byte estatus);
 
-        Task InsertarDocTimbradoLiqAsync(string database, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
+        Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
 
-        Task InsertarHistoricoAsync(string database, int idLiquidacion, string liquidacionJson);
+        Task InsertarHistoricoAsync(int idCompania, int idLiquidacion, string liquidacionJson);
     }
 }
