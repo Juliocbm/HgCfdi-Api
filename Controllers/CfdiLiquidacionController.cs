@@ -6,12 +6,12 @@ namespace HG.CFDI.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LiquidacionController : ControllerBase
+    public class CfdiLiquidacionController : ControllerBase
     {
         private readonly ILiquidacionService _liquidacionService;
-        private readonly ILogger<LiquidacionController> _logger;
+        private readonly ILogger<CfdiLiquidacionController> _logger;
 
-        public LiquidacionController(ILogger<LiquidacionController> logger, ILiquidacionService liquidacionService)
+        public CfdiLiquidacionController(ILogger<CfdiLiquidacionController> logger, ILiquidacionService liquidacionService)
         {
             _logger = logger;
             _liquidacionService = liquidacionService;

@@ -8,6 +8,8 @@ namespace HG.CFDI.CORE.Interfaces
 
         Task ActualizarEstatusAsync(string database, int noLiquidacion, int estatus);
 
-        Task InsertarHistoricoAsync(string database, int noLiquidacion, int estatus, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
+        Task InsertarDocTimbradoLiqAsync(string database, int noLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
+
+        Task InsertarHistoricoAsync(string database, int noLiquidacion, string liquidacionJson);
     }
 }

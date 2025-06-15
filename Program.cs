@@ -19,6 +19,7 @@ using HG.CFDI.SERVICE.Services.Timbrado.Documentos;
 using Interceptor.AOP.AspNetCore;
 using Ryder.Api.Client.DependencyInjection;
 using Ryder.Api.Client.Services;
+using HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,7 +64,9 @@ builder.Services.Configure<RetryOptions>(builder.Configuration.GetSection("Retry
 builder.Services.AddRyderApiClient();
 
 //DbContextFactory
-builder.Services.AddScoped<IDbContextFactory, DbContextFactory>();//services
+builder.Services.AddScoped<IDbContextFactory, DbContextFactory>();
+
+//Timbrado de cartas porte
 builder.Services.AddScoped<ICartaPorteService, CartaPorteService>();
 builder.Services.AddScoped<IValidacionesSatService, ValidacionesSatService>();
 builder.Services.AddScoped<IRyderService, RyderService>();
@@ -75,8 +78,13 @@ builder.Services.AddScoped<ICartaPorteServiceApi, CartaPorteServiceApi>();
 builder.Services.AddScoped<IRyderApiClient, RyderApiClient>();
 builder.Services.AddScoped<ITipoCambioService, TipoCambioService>();
 builder.Services.AddScoped<ITipoCambioRepository, TipoCambioRepository>();
+
+
+//Timbrado de liquidaciones
 builder.Services.AddScoped<ILiquidacionService, LiquidacionService>();
 builder.Services.AddScoped<ILiquidacionRepository, LiquidacionRepository>();
+builder.Services.AddScoped<IValidacionesNominaSatService, ValidacionesNominaSatService>();
+
 
 //Appsettings
 builder.Services.Configure<List<FirmaDigitalOptions>>(builder.Configuration.GetSection("FirmaDigital"));
