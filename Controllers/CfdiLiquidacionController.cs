@@ -22,7 +22,13 @@ namespace HG.CFDI.API.Controllers
         {
             try
             {
-                var liquidacion = await _liquidacionService.ObtenerLiquidacion(database.ToLower(), noLiquidacion);
+                int? idCompania = ObtenerIdCompania(database);
+                if (idCompania is null)
+                {
+                    return BadRequest("Base de datos no válida");
+                }
+
+                var liquidacion = await _liquidacionService.ObtenerLiquidacion(idCompania.Value, noLiquidacion);
                 if (liquidacion == null)
                 {
                     return NotFound();
@@ -37,11 +43,17 @@ namespace HG.CFDI.API.Controllers
         }
 
         [HttpPost("TimbrarLiquidacion")]
-        public async Task<IActionResult> TimbrarLiquidacion(string database, int noLiquidacion)
+        public async Task<IActionResult> TimbrarLiquidacion(int idCompania, int noLiquidacion)
         {
             try
             {
-                var response = await _liquidacionService.TimbrarLiquidacionAsync(database.ToLower(), noLiquidacion);
+                string? database = ObtenerDatabase(idCompania);
+                if (string.IsNullOrEmpty(database))
+                {
+                    return BadRequest("idCompania no válido");
+                }
+
+                var response = await _liquidacionService.TimbrarLiquidacionAsync(idCompania, noLiquidacion);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -49,6 +61,31 @@ namespace HG.CFDI.API.Controllers
                 _logger.LogError(ex, "Error al timbrar la liquidación");
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        private static string? ObtenerDatabase(int idCompania)
+        {
+            return idCompania switch
+            {
+                1 => "hgdb_lis",
+                2 => "chdb_lis",
+                3 => "rldb_lis",
+                4 => "lindadb",
+                _ => null
+            };
+        }
+
+        private static int? ObtenerIdCompania(string database)
+        {
+            database = database.ToLower();
+            return database switch
+            {
+                "hgdb_lis" => 1,
+                "chdb_lis" => 2,
+                "rldb_lis" => 3,
+                "lindadb" => 4,
+                _ => null
+            };
         }
     }
 }
