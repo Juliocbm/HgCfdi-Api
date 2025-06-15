@@ -13,7 +13,7 @@ public partial class anticipoHeaderLi
 
     public DateTime? fechaAnticipo { get; set; }
 
-    public string? num_guia { get; set; }
+    public string? numGuia { get; set; }
 
     public int? noViaje { get; set; }
 

@@ -4,12 +4,12 @@ namespace HG.CFDI.CORE.Interfaces
 {
     public interface ILiquidacionRepository
     {
-        Task<string?> ObtenerDatosNominaJson(string database, int noLiquidacion);
+        Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion);
 
-        Task ActualizarEstatusAsync(string database, int noLiquidacion, int estatus);
+        Task ActualizarEstatusAsync(string database, int idLiquidacion, byte estatus);
 
-        Task InsertarDocTimbradoLiqAsync(string database, int noLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
+        Task InsertarDocTimbradoLiqAsync(string database, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
 
-        Task InsertarHistoricoAsync(string database, int noLiquidacion, string liquidacionJson);
+        Task InsertarHistoricoAsync(string database, int idLiquidacion, string liquidacionJson);
     }
 }

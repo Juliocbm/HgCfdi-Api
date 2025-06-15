@@ -327,7 +327,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
 
                 comprobante.Moneda = ccps.moneda;
 
-                comprobante.tipoCambio = ccps.moneda.Equals("MXN") ? (int)ccps.cteReceptorTipoCambio : ccps.cteReceptorTipoCambio;
+                comprobante.tipoCambio = ccps.moneda.Equals("MXN") ? (int)ccps.cteReceptorTipoCambio.Value : ccps.cteReceptorTipoCambio.Value;
                 comprobante.TipoCambioSpecified = true;
                 comprobante.TipoDeComprobante = "I";
                 comprobante.LugarExpedicion = ccps.cteEmisorCp;
@@ -415,8 +415,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                     concepto.ClaveUnidad = "E48";
                     concepto.Cantidad = 1;
                     concepto.Descripcion = item.descripcion;
-                    concepto.ValorUnitario = decimal.Round(item.importe, 6);
-                    concepto.Importe = decimal.Round(item.importe, 6);
+                    concepto.ValorUnitario = decimal.Round(item.importe.Value, 6);
+                    concepto.Importe = decimal.Round(item.importe.Value, 6);
                     concepto.Unidad = "SERVICIO";
                     concepto.DescuentoSpecified = false;
                     concepto.Descuento = decimal.Parse("00.00");
@@ -433,11 +433,11 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         {
                                 new ComprobanteConceptoImpuestosTraslado()
                                 {
-                                    Base= decimal.Round(item.importe,6),
+                                    Base= decimal.Round(item.importe.Value,6),
                                     Impuesto= c_Impuesto.Item002,
                                     TipoFactor= c_TipoFactor.Tasa,
-                                    TasaOCuota= decimal.Round(item.factorIva,6),
-                                    Importe= decimal.Round(item.importe * item.factorIva,6) ,
+                                    TasaOCuota= decimal.Round(item.factorIva.Value,6),
+                                    Importe= decimal.Round(item.importe.Value * item.factorIva.Value,6) ,
                                     ImporteSpecified = true,
                                     TasaOCuotaSpecified = true
                                 }
@@ -448,11 +448,11 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         ImpuestosConcepto.Retenciones = new ComprobanteConceptoImpuestosRetencion[]
                         {
                                 new ComprobanteConceptoImpuestosRetencion(){
-                                    Base = decimal.Round(item.importe,6),
+                                    Base = decimal.Round(item.importe.Value,6),
                                     Impuesto = c_Impuesto.Item002,
                                     TipoFactor = c_TipoFactor.Tasa,
-                                    TasaOCuota = decimal.Round(item.factorRetencion,6),
-                                    Importe = decimal.Round(item.importe * item.factorRetencion,6)
+                                    TasaOCuota = decimal.Round(item.factorRetencion.Value,6),
+                                    Importe = decimal.Round(item.importe.Value * item.factorRetencion.Value,6)
                                 }
                         };
                     }
@@ -663,7 +663,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
 
                     ubicacionDestino.FechaHoraSalidaLlegada = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"); //item.FechaArriboProgramado;                 
                     ubicacionDestino.DistanciaRecorridaSpecified = true;
-                    ubicacionDestino.DistanciaRecorrida = item.distanciaRecorrida;
+                    ubicacionDestino.DistanciaRecorrida = item.distanciaRecorrida.Value;
 
                     ubicacionDestino.Domicilio = new CartaPorteUbicacionDomicilio()
                     {
@@ -691,7 +691,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                 identificacionVehicular.AnioModeloVM = Convert.ToInt32(ccps.modeloUnidad);
                 identificacionVehicular.ConfigVehicular = ccps.configVehicular;
                 identificacionVehicular.PlacaVM = Regex.Replace(ccps.placaUnidad, "[^a-zA-Z0-9]", "");
-                identificacionVehicular.PesoBrutoVehicular = ccps.pesoBrutoVehicular;
+                identificacionVehicular.PesoBrutoVehicular = ccps.pesoBrutoVehicular.Value;
                 autotransporte.IdentificacionVehicular = identificacionVehicular;
                 autotransporte.PermSCT = ccps.claveTipoPermiso; //TPTA02;
                 autotransporte.NumPermisoSCT = ccps.numTipoPermiso;
@@ -832,7 +832,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         merca.MaterialPeligroso = CartaPorteMercanciasMercanciaMaterialPeligroso.No;
                     }
 
-                    merca.PesoEnKg = item.peso;
+                    merca.PesoEnKg = item.peso.Value;
                     merca.Moneda = ccps.moneda;
                     //if (ccps.cabecera.cte_paga_id == 76 && database == "chdb_lis")
                     //{
@@ -850,7 +850,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                 mercancias.Autotransporte = autotransporte;
                 mercancias.Mercancia = listaMercancias.ToArray();
                 mercancias.NumTotalMercancias = ccps.cartaPorteMercancia.Count();
-                mercancias.PesoBrutoTotal = ccps.cartaPorteMercancia.Sum(x => x.peso);
+                mercancias.PesoBrutoTotal = ccps.cartaPorteMercancia.Sum(x => x.peso.Value);
                 mercancias.UnidadPeso = "KGM";
 
                 #region parte2
@@ -1094,17 +1094,17 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         break;
                     case "USD":
                         comprobante.Moneda = c_Moneda.USD;
-                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio.Value;
                         comprobante.TipoCambioSpecified = true;
                         break;
                     case "CAD":
                         comprobante.Moneda = c_Moneda.CAD;
-                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio.Value;
                         comprobante.TipoCambioSpecified = true;
                         break;
                     case "EUR":
                         comprobante.Moneda = c_Moneda.EUR;
-                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio;
+                        comprobante.TipoCambio = ccps.cteReceptorTipoCambio.Value;
                         comprobante.TipoCambioSpecified = true;
                         break;
                     default:
@@ -1212,8 +1212,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                     concepto.ClaveUnidad = c_ClaveUnidad.E48;
                     concepto.Cantidad = 1;
                     concepto.Descripcion = item.descripcion;
-                    concepto.ValorUnitario = decimal.Round(item.importe, 6);
-                    concepto.Importe = decimal.Round(item.importe, 6);
+                    concepto.ValorUnitario = decimal.Round(item.importe.Value, 6);
+                    concepto.Importe = decimal.Round(item.importe.Value, 6);
                     concepto.Unidad = "SERVICIO";
                     concepto.DescuentoSpecified = false;
                     concepto.Descuento = decimal.Parse("00.00");
@@ -1231,11 +1231,11 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         {
                                 new BuzonE.ComprobanteConceptoImpuestosTraslado()
                                 {
-                                    Base= decimal.Round(item.importe,6),
+                                    Base= decimal.Round(item.importe.Value,6),
                                     Impuesto= BuzonE.c_Impuesto.Item002,
                                     TipoFactor= BuzonE.c_TipoFactor.Tasa,
-                                    TasaOCuota= decimal.Round(item.factorIva,6),
-                                    Importe= decimal.Round(item.importe * item.factorIva,6) ,
+                                    TasaOCuota= decimal.Round(item.factorIva.Value,6),
+                                    Importe= decimal.Round(item.importe.Value * item.factorIva.Value,6) ,
                                     ImporteSpecified = true,
                                     TasaOCuotaSpecified = true
                                 }
@@ -1246,11 +1246,11 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         ImpuestosConcepto.Retenciones = new BuzonE.ComprobanteConceptoImpuestosRetencion[]
                         {
                                 new BuzonE.ComprobanteConceptoImpuestosRetencion(){
-                                    Base = decimal.Round(item.importe,6),
+                                    Base = decimal.Round(item.importe.Value,6),
                                     Impuesto = BuzonE.c_Impuesto.Item002,
                                     TipoFactor = BuzonE.c_TipoFactor.Tasa,
-                                    TasaOCuota = decimal.Round(item.factorRetencion,6),
-                                    Importe = decimal.Round(item.importe * item.factorRetencion,6)
+                                    TasaOCuota = decimal.Round(item.factorRetencion.Value,6),
+                                    Importe = decimal.Round(item.importe.Value * item.factorRetencion.Value,6)
                                 }
                         };
                     }
@@ -1411,8 +1411,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
 
                 foreach (var item in ccps.cartaPorteUbicaciones)
                 {
-                    CartaPorteUbicacion1 ubicacionOrigen = new CartaPorteUbicacion1();
-                    CartaPorteUbicacion1 ubicacionDestino = new CartaPorteUbicacion1();
+                    BuzonE.CartaPorteUbicacion1 ubicacionOrigen = new BuzonE.CartaPorteUbicacion1();
+                    BuzonE.CartaPorteUbicacion1 ubicacionDestino = new BuzonE.CartaPorteUbicacion1();
 
                     //UBICACION ORIGEN
                     if (!(string.IsNullOrWhiteSpace(item.remitenteResidenciaFiscal) || item.remitenteResidenciaFiscal.Equals("MEX")))
@@ -1443,7 +1443,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         if (!item.destinatarioPais.Equals("MEX"))
                         {
                             ubicacionDestino.ResidenciaFiscal = item.destinatarioResidenciaFiscal.Trim();
-                            ubicacionDestino.ResidenciaFiscalSpecified = true;
+                            //ubicacionDestino.ResidenciaFiscalSpecified = true;
 
                             if (!string.IsNullOrWhiteSpace(item.destinatarioNumRegIdTrib))
                             {
@@ -1459,7 +1459,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                     ubicacionDestino.NombreRemitenteDestinatario = string.IsNullOrWhiteSpace(item.nombreDestinatario) ? null : item.nombreDestinatario.Trim();
 
                     ubicacionDestino.FechaHoraSalidaLlegada = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"); //item.FechaArriboProgramado;  
-                    ubicacionDestino.DistanciaRecorrida = item.distanciaRecorrida;
+                    ubicacionDestino.DistanciaRecorrida = item.distanciaRecorrida.Value;
                     ubicacionDestino.DistanciaRecorridaSpecified = true;
 
                     ubicacionDestino.Domicilio = new CartaPorteUbicacionDomicilio1()
@@ -1509,7 +1509,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                 identificacionVehicular.ConfigVehicular = ccps.configVehicular;
                 identificacionVehicular.PlacaVM = Regex.Replace(ccps.placaUnidad, "[^a-zA-Z0-9]", "");
                 //identificacionVehicular.PesoBrutoVehicular = ccps.PesoBrutoVehicular.ToString().Replace(",", ".");
-                identificacionVehicular.PesoBrutoVehicular = ccps.pesoBrutoVehicular;
+                identificacionVehicular.PesoBrutoVehicular = ccps.pesoBrutoVehicular.Value;
                 autotransporte.IdentificacionVehicular = identificacionVehicular;
                 autotransporte.PermSCT = ccps.claveTipoPermiso;
                 autotransporte.NumPermisoSCT = ccps.numTipoPermiso.ToString();
@@ -1660,7 +1660,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                         }
                     }
                     //merca.PesoEnKg = item.Peso.ToString().Replace(",", ".");
-                    merca.PesoEnKg = item.peso;
+                    merca.PesoEnKg = item.peso.Value;
 
                     if (ccps.cteReceptorId == 76 && database == "chdb_lis")
                     {
@@ -1678,8 +1678,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.ValidacionesSat
                 //mercancias.PesoNetoTotal = ccps.cartaPorteMercancia.Sum(x => x.Peso).ToString().Replace(",", ".");
 
                 mercancias.NumTotalMercancias = ccps.cartaPorteMercancia.Count();
-                mercancias.PesoBrutoTotal = ccps.cartaPorteMercancia.Sum(x => x.peso);
-                mercancias.PesoNetoTotal = ccps.cartaPorteMercancia.Sum(x => x.peso);
+                mercancias.PesoBrutoTotal = ccps.cartaPorteMercancia.Sum(x => x.peso.Value);
+                mercancias.PesoNetoTotal = ccps.cartaPorteMercancia.Sum(x => x.peso.Value);
 
                 //AÑADIR A CARTA PORTE
                 cartaPorte.FiguraTransporte = figurasTransporte.ToArray();

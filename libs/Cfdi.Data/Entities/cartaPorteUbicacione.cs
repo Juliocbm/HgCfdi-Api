@@ -55,7 +55,7 @@ public partial class cartaPorteUbicacione
 
     public string? fechaArriboProgramado { get; set; }
 
-    public decimal distanciaRecorrida { get; set; }
+    public decimal? distanciaRecorrida { get; set; }
 
     public DateTime? fechaInsert { get; set; }
 

@@ -62,7 +62,7 @@ public partial class CfdiDbContext : DbContext
 
     public virtual DbSet<cartaPorteMercancium> cartaPorteMercancia { get; set; }
 
-    public virtual DbSet<cartaPorteOperacionRyders> cartaPorteOperacionRyders { get; set; }
+    public virtual DbSet<cartaPorteOperacionRyder> cartaPorteOperacionRyders { get; set; }
 
     public virtual DbSet<cartaPorteRegimenAduanero> cartaPorteRegimenAduaneros { get; set; }
 
@@ -86,6 +86,12 @@ public partial class CfdiDbContext : DbContext
 
     public virtual DbSet<liquidacionHeaderLi> liquidacionHeaderLis { get; set; }
 
+    public virtual DbSet<liquidacionOperador> liquidacionOperadors { get; set; }
+
+    public virtual DbSet<liquidacionOperadorHist> liquidacionOperadorHists { get; set; }
+
+    public virtual DbSet<liquidacionOperadorHistError> liquidacionOperadorHistErrors { get; set; }
+
     public virtual DbSet<liquidacionViajeDetailLi> liquidacionViajeDetailLis { get; set; }
 
     public virtual DbSet<ordenTrasladoCabecera> ordenTrasladoCabeceras { get; set; }
@@ -97,6 +103,10 @@ public partial class CfdiDbContext : DbContext
     public virtual DbSet<tipoCambio> tipoCambios { get; set; }
 
     public virtual DbSet<vwTipoCambio> vwTipoCambios { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=hg.sql.midireccion.com;User ID=uAppCFDis;Password=U1nv01c3$.; Database=CFDisDB;TrustServerCertificate=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -114,12 +124,12 @@ public partial class CfdiDbContext : DbContext
 
         modelBuilder.Entity<Counter>(entity =>
         {
-            entity.HasKey(e => new { e.Key, e.id }).HasName("PK_HangFire_Counter");
+            entity.HasKey(e => new { e.Key, e.Id }).HasName("PK_HangFire_Counter");
 
             entity.ToTable("Counter", "HangFire");
 
             entity.Property(e => e.Key).HasMaxLength(100);
-            entity.Property(e => e.id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.ExpireAt).HasColumnType("datetime");
         });
 
@@ -137,7 +147,7 @@ public partial class CfdiDbContext : DbContext
 
         modelBuilder.Entity<Job>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PK_HangFire_Job");
+            entity.HasKey(e => e.Id).HasName("PK_HangFire_Job");
 
             entity.ToTable("Job", "HangFire");
 
@@ -165,25 +175,25 @@ public partial class CfdiDbContext : DbContext
 
         modelBuilder.Entity<JobQueue>(entity =>
         {
-            entity.HasKey(e => new { e.Queue, e.id }).HasName("PK_HangFire_JobQueue");
+            entity.HasKey(e => new { e.Queue, e.Id }).HasName("PK_HangFire_JobQueue");
 
             entity.ToTable("JobQueue", "HangFire");
 
             entity.Property(e => e.Queue).HasMaxLength(50);
-            entity.Property(e => e.id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.FetchedAt).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<List>(entity =>
         {
-            entity.HasKey(e => new { e.Key, e.id }).HasName("PK_HangFire_List");
+            entity.HasKey(e => new { e.Key, e.Id }).HasName("PK_HangFire_List");
 
             entity.ToTable("List", "HangFire");
 
             entity.HasIndex(e => e.ExpireAt, "IX_HangFire_List_ExpireAt").HasFilter("([ExpireAt] IS NOT NULL)");
 
             entity.Property(e => e.Key).HasMaxLength(100);
-            entity.Property(e => e.id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.ExpireAt).HasColumnType("datetime");
         });
 
@@ -198,13 +208,13 @@ public partial class CfdiDbContext : DbContext
 
         modelBuilder.Entity<Server>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PK_HangFire_Server");
+            entity.HasKey(e => e.Id).HasName("PK_HangFire_Server");
 
             entity.ToTable("Server", "HangFire");
 
             entity.HasIndex(e => e.LastHeartbeat, "IX_HangFire_Server_LastHeartbeat");
 
-            entity.Property(e => e.id).HasMaxLength(200);
+            entity.Property(e => e.Id).HasMaxLength(200);
             entity.Property(e => e.LastHeartbeat).HasColumnType("datetime");
         });
 
@@ -225,13 +235,13 @@ public partial class CfdiDbContext : DbContext
 
         modelBuilder.Entity<State>(entity =>
         {
-            entity.HasKey(e => new { e.JobId, e.id }).HasName("PK_HangFire_State");
+            entity.HasKey(e => new { e.JobId, e.Id }).HasName("PK_HangFire_State");
 
             entity.ToTable("State", "HangFire");
 
             entity.HasIndex(e => e.CreatedAt, "IX_HangFire_State_CreatedAt");
 
-            entity.Property(e => e.id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Reason).HasMaxLength(100);
@@ -446,7 +456,7 @@ public partial class CfdiDbContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.fechaAnticipo).HasColumnType("datetime");
             entity.Property(e => e.id).ValueGeneratedOnAdd();
-            entity.Property(e => e.num_guia)
+            entity.Property(e => e.numGuia)
                 .HasMaxLength(15)
                 .IsUnicode(false);
             entity.Property(e => e.observaciones)
@@ -531,7 +541,7 @@ public partial class CfdiDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.codigoTransportista)
-                .HasMaxLength(10)
+                .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.configVehicular)
                 .HasMaxLength(50)
@@ -796,7 +806,7 @@ public partial class CfdiDbContext : DbContext
                 .HasConstraintName("FK__cartaPorteMercan__214BF109");
         });
 
-        modelBuilder.Entity<cartaPorteOperacionRyders>(entity =>
+        modelBuilder.Entity<cartaPorteOperacionRyder>(entity =>
         {
             entity.HasKey(e => e.id).HasName("PK__cartaPor__3213E83F73BE3E68");
 
@@ -1121,6 +1131,54 @@ public partial class CfdiDbContext : DbContext
                 .HasMaxLength(5)
                 .IsUnicode(false);
             entity.Property(e => e.total).HasColumnType("decimal(18, 6)");
+        });
+
+        modelBuilder.Entity<liquidacionOperador>(entity =>
+        {
+            entity.HasKey(e => new { e.IdLiquidacion, e.IdCompania });
+
+            entity.ToTable("liquidacionOperador", "cfdi");
+
+            entity.HasIndex(e => new { e.IdLiquidacion, e.IdCompania }, "IX_liquidacionOperador_IdLiquCompania");
+
+            entity.HasIndex(e => new { e.IdLiquidacion, e.IdCompania, e.Estatus }, "UX_liquidacionOperador_Cola")
+                .IsUnique()
+                .HasFilter("([Estatus] IN ((0), (1)))");
+
+            entity.Property(e => e.FechaRegistro).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.MensajeCorto)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.UUID)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<liquidacionOperadorHist>(entity =>
+        {
+            entity.HasKey(e => e.IdHistorico).HasName("PK__liquidac__9CC7EBF34FD3D97B");
+
+            entity.ToTable("liquidacionOperadorHist", "cfdi");
+
+            entity.HasIndex(e => new { e.IdLiquidacion, e.IdCompania }, "IX_liquidacionOperadorHist_IdLiquCompania");
+
+            entity.HasIndex(e => new { e.IdLiquidacion, e.IdCompania, e.NumeroIntento }, "IX_liquidacionOperadorHist_IdLiquCompania_NumeroIntento");
+
+            entity.Property(e => e.EstadoIntento)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaIntento).HasDefaultValueSql("(sysutcdatetime())");
+        });
+
+        modelBuilder.Entity<liquidacionOperadorHistError>(entity =>
+        {
+            entity.HasKey(e => e.IdError).HasName("PK__liquidac__C8A4CFD9F422CA8B");
+
+            entity.ToTable("liquidacionOperadorHistError", "cfdi");
+
+            entity.HasIndex(e => new { e.IdHistorico, e.NumeroIntento }, "IX_liquidacionOperadorHistError_IdHistorico_NumeroIntento");
+
+            entity.HasIndex(e => new { e.IdLiquidacion, e.IdCompania }, "IX_liquidacionOperadorHistError_IdLiquCompania");
         });
 
         modelBuilder.Entity<liquidacionViajeDetailLi>(entity =>

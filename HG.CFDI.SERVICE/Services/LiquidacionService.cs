@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat;
+using System.Text;
 
 namespace HG.CFDI.SERVICE.Services
 {
@@ -38,13 +39,15 @@ namespace HG.CFDI.SERVICE.Services
                 return null;
             }
         }
-
+     
         public async Task<UniqueResponse> TimbrarLiquidacionAsync(string database, int noLiquidacion)
         {
-            UniqueResponse respuesta = new UniqueResponse();
+            var respuesta = new UniqueResponse();
 
-            await _repository.ActualizarEstatusAsync(database, noLiquidacion, 1);
+            // Estatus 1 = EnProceso
+            await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.EnProceso);
 
+            // Obtener datos de liquidación
             var liquidacion = await ObtenerLiquidacion(database, noLiquidacion);
             if (liquidacion == null)
             {
@@ -53,13 +56,16 @@ namespace HG.CFDI.SERVICE.Services
                 return respuesta;
             }
 
+            // Generar el request para Buzón E
             var request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
 
+            // Guardar histórico de la liquidación
             string liquidacionJson = JsonSerializer.Serialize(liquidacion);
             await _repository.InsertarHistoricoAsync(database, noLiquidacion, liquidacionJson);
 
             try
             {
+                // Consumir servicio Buzón E
                 BuzonE.responseBE responseServicio;
                 using (var client = new EmisionServiceClient())
                 {
@@ -67,32 +73,35 @@ namespace HG.CFDI.SERVICE.Services
                     await client.CloseAsync();
                 }
 
-                if (responseServicio != null && responseServicio.code == "BE-EMS.200")
+                if (responseServicio?.code == "BE-EMS.200")
                 {
-                    byte[] xmlBytes = System.Text.Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
-                    await _repository.ActualizarEstatusAsync(database, noLiquidacion, 3);
+                    // Timbrado exitoso
+                    byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
+
+                    await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.Timbrado); // Estatus 5 = Timbrado
                     await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, xmlBytes, null, responseServicio.uuid);
 
                     respuesta.IsSuccess = true;
                     respuesta.Mensaje = "Timbrado exitoso";
                     respuesta.XmlByteArray = xmlBytes;
-                    respuesta.PdfByteArray = Array.Empty<byte>();
+                    respuesta.PdfByteArray = Array.Empty<byte>(); // si vas a generar PDF luego
                 }
                 else
                 {
-                    await _repository.ActualizarEstatusAsync(database, noLiquidacion, 2);
-                    await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, null, null, null);
+                    // Error en timbrado del PAC
+                    await RegistrarFalloDeTimbrado(database, noLiquidacion);
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
+
                     if (!string.IsNullOrWhiteSpace(responseServicio?.mensajeErrorTimbrado))
                         respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                await _repository.ActualizarEstatusAsync(database, noLiquidacion, 2);
-                await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, null, null, null);
+                // Fallo inesperado
+                await RegistrarFalloDeTimbrado(database, noLiquidacion);
 
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Ocurrió un error al timbrar";
@@ -101,5 +110,23 @@ namespace HG.CFDI.SERVICE.Services
 
             return respuesta;
         }
+
+        private async Task RegistrarFalloDeTimbrado(string database, int noLiquidacion)
+        {
+            await _repository.ActualizarEstatusAsync(database, noLiquidacion, (byte)EstatusLiquidacion.ErrorValidacion); // Estatus 2 = ErrorValidacion
+            await _repository.InsertarDocTimbradoLiqAsync(database, noLiquidacion, null, null, null);
+        }
+
+        public enum EstatusLiquidacion : byte
+        {
+            Pendiente = 0,
+            EnProceso = 1,
+            ErrorValidacion = 2,
+            ErrorPAC = 2,
+            ErrorTransitorio = 4,
+            RequiereRevision = 6,
+            Timbrado = 3
+        }
+
     }
 }

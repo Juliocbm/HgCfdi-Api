@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace CFDI.Data.Entities;
 
-public partial class cartaPorteOperacionRyders
+public partial class cartaPorteOperacionRyder
 {
     public int id { get; set; }
 

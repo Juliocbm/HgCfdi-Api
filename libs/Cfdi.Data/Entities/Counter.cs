@@ -11,5 +11,5 @@ public partial class Counter
 
     public DateTime? ExpireAt { get; set; }
 
-    public long id { get; set; }
+    public long Id { get; set; }
 }

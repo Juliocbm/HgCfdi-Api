@@ -13,7 +13,7 @@ public partial class cartaPorteMercancium
 
     public decimal cantidad { get; set; }
 
-    public decimal peso { get; set; }
+    public decimal? peso { get; set; }
 
     public string? claveProdServ { get; set; }
 

@@ -163,7 +163,7 @@ namespace HG.CFDI.SERVICE.Services
                     respuesta.Mensaje = "Timbrado exitoso";
                     string xmlString = Encoding.UTF8.GetString(respuesta.XmlByteArray);
 
-                    await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado);
+                    await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado.Value);
 
 
                     var archivo = _documentosService.CreateArchivoCFDi(cartaPorte, respuesta.XmlByteArray, respuesta.PdfByteArray, await _documentosService.getUuidFromXml(xmlString));
@@ -180,7 +180,7 @@ namespace HG.CFDI.SERVICE.Services
                 {
                     if (response.Errors != null)
                     {
-                        await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                        await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value);
                         foreach (var error in response.Errors)
                         {
                             foreach (var errorMessage in error.Value)
@@ -200,13 +200,13 @@ namespace HG.CFDI.SERVICE.Services
 
                             if (_utilsService.ValidaStringVariable(mensaje.Descripcion))
                             {
-                                await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado);
+                                await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado.Value);
                                 respuesta.IsSuccess = true;
                                 respuesta.Mensaje = mensaje.Descripcion;
                             }
                             else
                             {
-                                await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                                await changeStatusCartaPorteAsync(cp.no_guia, cp.num_guia, cp.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value);
                                 await insertError(cp.no_guia, cp.num_guia, cp.compania, mensaje.Descripcion, cp.facturaCartaPorte.IdOperador, cp.facturaCartaPorte.IdUnidad, cp.facturaCartaPorte.IdRemolque);
                                 respuesta.IsSuccess = false;
                                 respuesta.Mensaje = "Contiene errores de timbrado";
@@ -220,7 +220,7 @@ namespace HG.CFDI.SERVICE.Services
             }
             else
             {
-                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value);
                 await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo en login con zam.", null, null, null);
 
                 respuesta.IsSuccess = false;
@@ -249,7 +249,7 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (!reqResponse.IsSuccess)
                 {
-                    await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                    await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value);
 
                     respuesta.IsSuccess = reqResponse.IsSuccess;
                     respuesta.Mensaje = reqResponse.Message;
@@ -263,7 +263,7 @@ namespace HG.CFDI.SERVICE.Services
                 var firmaDigitalOption = _firmaDigitalOptions.FirstOrDefault(f => f.Empresa.Equals(cartaPorte.compania, StringComparison.OrdinalIgnoreCase));
                 if (firmaDigitalOption == null)
                 {
-                    await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                    await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value);
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = "No se encontró configuración de firma digital para la empresa especificada.";
@@ -327,7 +327,7 @@ namespace HG.CFDI.SERVICE.Services
                 byte[] xmlBytes = Encoding.UTF8.GetBytes(res.ObtenerCFDIResult.Xml);
                 byte[] pdfBytes = await _documentosService.getPdfTimbrado(res.ObtenerCFDIResult.Xml, database);
 
-                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado);
+                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado.Value);
                 #region ambiente test
                 //ObtenerCFDIPruebaResponse res = await client.ObtenerCFDIPruebaAsync(null, _invoiceOneOptions.User, _invoiceOneOptions.Password, xmlComprobante);
                 //byte[] xmlBytes = Encoding.UTF8.GetBytes(res.ObtenerCFDIPruebaResult.Xml);
@@ -389,7 +389,7 @@ namespace HG.CFDI.SERVICE.Services
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Contiene errores de timbrado";
                 respuesta.Errores.Add(ex.Message);
-                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado);
+                await changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value);
                 await insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null);
 
                 return respuesta;
@@ -407,7 +407,7 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (!requestUnique.IsSuccess)
                 {
-                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value));
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, requestUnique.Mensaje, null, null, null));
 
                     respuesta.IsSuccess = false;
@@ -436,7 +436,7 @@ namespace HG.CFDI.SERVICE.Services
                     catch (System.Exception ex)
                     {
                         _logger.LogError(ex, "Error al invocar emitirFacturaAsync");
-                        TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
+                        TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value));
                         TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, ex.Message, null, null, null));
                         return new UniqueResponse
                         {
@@ -453,7 +453,7 @@ namespace HG.CFDI.SERVICE.Services
 
                 if (responseServicio == null || string.IsNullOrWhiteSpace(responseServicio.code))
                 {
-                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 5, "Sin respuesta de BuzonE", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 5, "Sin respuesta de BuzonE", cartaPorte.sistemaTimbrado.Value));
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Respuesta nula o inválida del servicio BuzónE.", null, null, null));
                     return new UniqueResponse
                     {
@@ -484,7 +484,7 @@ namespace HG.CFDI.SERVICE.Services
                 respuesta.Mensaje = "Timbrado fallido";
                 respuesta.Errores.AddRange(_utilsService.GetAllExceptionMessages(ex));
 
-                TaskHelper.RunSafeAsync(() => _cartaPorteRepository.changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
+                TaskHelper.RunSafeAsync(() => _cartaPorteRepository.changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value));
 
                 foreach (var error in respuesta.Errores)
                 {
@@ -509,7 +509,7 @@ namespace HG.CFDI.SERVICE.Services
                 case "BE-EMS.200":
                     _logger.LogInformation($"Timbrado exitoso {cartaPorte.num_guia} - {responseServicio.code}");
 
-                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso", cartaPorte.sistemaTimbrado.Value));
 
                     byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
                     byte[] pdfBytes = Array.Empty<byte>();
@@ -530,7 +530,7 @@ namespace HG.CFDI.SERVICE.Services
                     break;
                 default:
                     _logger.LogInformation($"Timbrado fallido BuzonE {cartaPorte.num_guia} ");
-                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 2, "Contiene errores de timbrado", cartaPorte.sistemaTimbrado.Value));
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = "Contiene errores de timbrado";
@@ -575,14 +575,14 @@ namespace HG.CFDI.SERVICE.Services
                 if (!successDocs2019)
                 {
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2019", null, null, null));
-                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2019]", cartaPorte.sistemaTimbrado.Value));
                 }
 
                 bool successDocs2008 = resultados.First(r => r.server == "server2008").success;
                 if (!successDocs2008)
                 {
                     TaskHelper.RunSafeAsync(() => insertError(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, "Fallo al insertar documentos timbrados a base de datos 2008", null, null, null));
-                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2008]", cartaPorte.sistemaTimbrado));
+                    TaskHelper.RunSafeAsync(() => changeStatusCartaPorteAsync(cartaPorte.no_guia, cartaPorte.num_guia, cartaPorte.compania, 3, "Timbrado exitoso [SD2008]", cartaPorte.sistemaTimbrado.Value));
                 }
 
                 if (cartaPorte.cteReceptorId == _ryderApiOptions.IdClienteForUploadIngreso)

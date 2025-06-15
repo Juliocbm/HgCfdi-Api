@@ -628,7 +628,7 @@ namespace HG.CFDI.DATA.Repositories
             {
                 if (archivos == null)
                     throw new ArgumentNullException(nameof(archivos), "El objeto archivoCFDi no puede ser nulo.");
-                archivos.idArchivoCFDi = null;
+                //archivos.idArchivoCFDi = null;
 
                 await context.archivoCFDis.AddAsync(archivos);
                 var result = await context.SaveChangesAsync();

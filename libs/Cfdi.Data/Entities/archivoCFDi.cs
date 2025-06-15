@@ -5,7 +5,7 @@ namespace CFDI.Data.Entities;
 
 public partial class archivoCFDi
 {
-    public int? idArchivoCFDi { get; set; }
+    public int idArchivoCFDi { get; set; }
 
     public int no_guia { get; set; }
 

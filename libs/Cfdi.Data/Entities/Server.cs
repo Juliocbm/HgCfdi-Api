@@ -5,7 +5,7 @@ namespace CFDI.Data.Entities;
 
 public partial class Server
 {
-    public string id { get; set; } = null!;
+    public string Id { get; set; } = null!;
 
     public string? Data { get; set; }
 

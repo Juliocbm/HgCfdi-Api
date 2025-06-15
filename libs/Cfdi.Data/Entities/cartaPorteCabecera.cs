@@ -17,7 +17,7 @@ public partial class cartaPorteCabecera
 
     public string? observacionesPedido { get; set; }
 
-    public int sistemaTimbrado { get; set; }
+    public int? sistemaTimbrado { get; set; }
 
     public int? estatusTimbrado { get; set; }
 
@@ -67,9 +67,9 @@ public partial class cartaPorteCabecera
 
     public string? cteReceptorRfc { get; set; }
 
-    public string cteReceptorUsoCFDI { get; set; }
+    public string? cteReceptorUsoCFDI { get; set; }
 
-    public decimal cteReceptorTipoCambio { get; set; }
+    public decimal? cteReceptorTipoCambio { get; set; }
 
     public string? idUnidad { get; set; }
 
@@ -83,7 +83,7 @@ public partial class cartaPorteCabecera
 
     public string? polizaUnidad { get; set; }
 
-    public decimal pesoBrutoVehicular { get; set; }
+    public decimal? pesoBrutoVehicular { get; set; }
 
     public string? claveTipoPermiso { get; set; }
 
@@ -203,7 +203,7 @@ public partial class cartaPorteCabecera
 
     public virtual ICollection<cartaPorteMercancium> cartaPorteMercancia { get; set; } = new List<cartaPorteMercancium>();
 
-    public virtual ICollection<cartaPorteOperacionRyders> cartaPorteOperacionRyders { get; set; } = new List<cartaPorteOperacionRyders>();
+    public virtual ICollection<cartaPorteOperacionRyder> cartaPorteOperacionRyders { get; set; } = new List<cartaPorteOperacionRyder>();
 
     public virtual ICollection<cartaPorteRegimenAduanero> cartaPorteRegimenAduaneros { get; set; } = new List<cartaPorteRegimenAduanero>();
 

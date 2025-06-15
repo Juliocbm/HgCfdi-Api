@@ -13,17 +13,17 @@ public partial class cartaPorteDetalle
 
     public decimal? cantidad { get; set; }
 
-    public decimal importe { get; set; }
+    public decimal? importe { get; set; }
 
     public string? descripcion { get; set; }
 
     public decimal? montoIvaOtro { get; set; }
 
-    public decimal factorIva { get; set; }
+    public decimal? factorIva { get; set; }
 
     public decimal? montoRetencion { get; set; }
 
-    public decimal factorRetencion { get; set; }
+    public decimal? factorRetencion { get; set; }
 
     public string? claveProdServ { get; set; }
 

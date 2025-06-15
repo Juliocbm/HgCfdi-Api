@@ -11,7 +11,7 @@ public partial class historicoEDIFactura
 
     public int idCliente { get; set; }
 
-    public int no_guia { get; set; }
+    public int noGuia { get; set; }
 
     public bool enviado { get; set; }
 

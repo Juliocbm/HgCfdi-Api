@@ -5,7 +5,7 @@ namespace CFDI.Data.Entities;
 
 public partial class State
 {
-    public long id { get; set; }
+    public long Id { get; set; }
 
     public long JobId { get; set; }
 
