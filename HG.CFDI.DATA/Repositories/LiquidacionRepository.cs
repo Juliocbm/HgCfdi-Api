@@ -55,7 +55,7 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-       public async Task ActualizarEstatusAsync(string database, int noLiquidacion, int estatus)
+        public async Task ActualizarEstatusAsync(string database, int noLiquidacion, int estatus)
         {
             string server = database switch
             {
@@ -68,21 +68,13 @@ namespace HG.CFDI.DATA.Repositories
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
-            using var command = context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "cfdi.actualizaEstatusLiquidacionOperador";
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.Add(new SqlParameter("@Database", database));
-            command.Parameters.Add(new SqlParameter("@NoLiquidacion", noLiquidacion));
-            command.Parameters.Add(new SqlParameter("@Estatus", estatus));
 
-            await context.Database.OpenConnectionAsync();
-            try
+            string compania = database.Substring(0, 2);
+            var entidad = await context.liquidacionHeaderLis.FirstOrDefaultAsync(l => l.idLiquidacion == noLiquidacion && l.compania == compania);
+            if (entidad != null)
             {
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                await context.Database.CloseConnectionAsync();
+                entidad.estatusTraslado = estatus;
+                await context.SaveChangesAsync();
             }
         }
 
@@ -99,24 +91,24 @@ namespace HG.CFDI.DATA.Repositories
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
-            using var command = context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "cfdi.insertDocTimbradoLiq";
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.Add(new SqlParameter("@Database", database));
-            command.Parameters.Add(new SqlParameter("@NoLiquidacion", noLiquidacion));
-            command.Parameters.Add(new SqlParameter("@XmlTimbrado", SqlDbType.VarBinary) { Value = (object?)xmlTimbrado ?? DBNull.Value });
-            command.Parameters.Add(new SqlParameter("@PdfTimbrado", SqlDbType.VarBinary) { Value = (object?)pdfTimbrado ?? DBNull.Value });
-            command.Parameters.Add(new SqlParameter("@Uuid", SqlDbType.VarChar) { Value = (object?)uuid ?? DBNull.Value });
 
-            await context.Database.OpenConnectionAsync();
-            try
+            string compania = database.Substring(0, 2);
+            var parametros = new[]
             {
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                await context.Database.CloseConnectionAsync();
-            }
+                new SqlParameter("@NoLiquidacion", noLiquidacion),
+                new SqlParameter("@Compania", compania),
+                new SqlParameter("@Xml", SqlDbType.VarBinary) { Value = (object?)xmlTimbrado ?? DBNull.Value },
+                new SqlParameter("@Pdf", SqlDbType.VarBinary) { Value = (object?)pdfTimbrado ?? DBNull.Value },
+                new SqlParameter("@Uuid", SqlDbType.VarChar) { Value = (object?)uuid ?? DBNull.Value }
+            };
+
+            string sql = @"UPDATE cfdi.liquidacionHeaderLi
+                                SET xmlTimbrado = @Xml,
+                                    pdfTimbrado = @Pdf,
+                                    uuid = @Uuid
+                              WHERE idLiquidacion = @NoLiquidacion AND compania = @Compania";
+
+            await context.Database.ExecuteSqlRawAsync(sql, parametros);
         }
 
         public async Task InsertarHistoricoAsync(string database, int noLiquidacion, string liquidacionJson)
@@ -132,22 +124,19 @@ namespace HG.CFDI.DATA.Repositories
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
-            using var command = context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "cfdi.insertJsonTimbradoLiq";
-            command.CommandType = CommandType.StoredProcedure;
-            command.Parameters.Add(new SqlParameter("@Database", database));
-            command.Parameters.Add(new SqlParameter("@NoLiquidacion", noLiquidacion));
-            command.Parameters.Add(new SqlParameter("@JsonSnapshot", noLiquidacion));
 
-            await context.Database.OpenConnectionAsync();
-            try
+            string compania = database.Substring(0, 2);
+            var parametros = new[]
             {
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                await context.Database.CloseConnectionAsync();
-            }
+                new SqlParameter("@NoLiquidacion", noLiquidacion),
+                new SqlParameter("@Compania", compania),
+                new SqlParameter("@Json", liquidacionJson)
+            };
+
+            string sql = @"INSERT INTO cfdi.liquidacionHistorico(idLiquidacion, compania, jsonSnapshot, fecha)
+                             VALUES(@NoLiquidacion, @Compania, @Json, GETDATE())";
+
+            await context.Database.ExecuteSqlRawAsync(sql, parametros);
         }
     }
 }

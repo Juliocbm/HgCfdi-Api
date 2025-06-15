@@ -55,6 +55,7 @@ namespace HG.CFDI.SERVICE.Services
 
             var request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
 
+            string liquidacionJson = JsonSerializer.Serialize(liquidacion);
             await _repository.InsertarHistoricoAsync(database, noLiquidacion, liquidacionJson);
 
             try
