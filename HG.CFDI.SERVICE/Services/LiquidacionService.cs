@@ -101,8 +101,13 @@ namespace HG.CFDI.SERVICE.Services
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
 
+                    string mensajeError = responseServicio?.mensajeErrorTimbrado ?? respuesta.Mensaje;
                     if (!string.IsNullOrWhiteSpace(responseServicio?.mensajeErrorTimbrado))
                         respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);
+
+                    var cabeceraActual = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
+                    if (cabeceraActual != null)
+                        await _repository.RegistrarErrorIntentoAsync(idCompania, noLiquidacion, cabeceraActual.UltimoIntento, mensajeError);
                 }
             }
             catch (Exception ex)
@@ -114,6 +119,10 @@ namespace HG.CFDI.SERVICE.Services
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Ocurrió un error al timbrar";
                 respuesta.Errores.Add(ex.Message);
+
+                var cabeceraActual = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
+                if (cabeceraActual != null)
+                    await _repository.RegistrarErrorIntentoAsync(idCompania, noLiquidacion, cabeceraActual.UltimoIntento, ex.Message);
             }
 
             return respuesta;
