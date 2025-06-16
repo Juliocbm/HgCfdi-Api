@@ -63,6 +63,26 @@ namespace HG.CFDI.API.Controllers
             }
         }
 
+        [HttpGet("GetDocumentosLiquidacion")]
+        public async Task<IActionResult> GetDocumentosLiquidacion(int idCompania, int idLiquidacion)
+        {
+            try
+            {
+                var response = await _liquidacionService.ObtenerDocumentosTimbradosAsync(idCompania, idLiquidacion);
+                if (!response.IsSuccess)
+                {
+                    return NotFound(response.Mensaje);
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener documentos de la liquidación");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         private static string? ObtenerDatabase(int idCompania)
         {
             return idCompania switch

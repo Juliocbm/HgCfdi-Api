@@ -170,6 +170,32 @@ namespace HG.CFDI.SERVICE.Services
             return respuesta;
         }
 
+        public async Task<UniqueResponse> ObtenerDocumentosTimbradosAsync(int idCompania, int idLiquidacion)
+        {
+            _logger.LogInformation("Inicio ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+
+            var registro = await _repository.ObtenerCabeceraAsync(idCompania, idLiquidacion);
+
+            if (registro?.XMLTimbrado != null && registro.PDFTimbrado != null)
+            {
+                _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+                return new UniqueResponse
+                {
+                    IsSuccess = true,
+                    Mensaje = "Documentos encontrados",
+                    XmlByteArray = registro.XMLTimbrado,
+                    PdfByteArray = registro.PDFTimbrado
+                };
+            }
+
+            _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+            return new UniqueResponse
+            {
+                IsSuccess = false,
+                Mensaje = "Documentos no encontrados"
+            };
+        }
+
         private async Task RegistrarFalloDeTimbrado(int idCompania, int noLiquidacion, bool transitorio)
         {
             if (transitorio)
