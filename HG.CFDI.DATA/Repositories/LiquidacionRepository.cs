@@ -71,7 +71,7 @@ namespace HG.CFDI.DATA.Repositories
             return result;
         }
 
-        public async Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson)
+        public async Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson, string? mensajeCorto = null)
         {
             _logger.LogInformation("Inicio RegistrarInicioIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
             string server = "server2019";
@@ -99,6 +99,8 @@ namespace HG.CFDI.DATA.Repositories
                     entidad.Intentos = nuevoIntento;
                     entidad.UltimoIntento = nuevoIntento;
                     entidad.FechaProximoIntento = null;
+                    if (!string.IsNullOrWhiteSpace(mensajeCorto))
+                        entidad.MensajeCorto = mensajeCorto;
 
                     await context.SaveChangesAsync();
 
@@ -127,7 +129,7 @@ namespace HG.CFDI.DATA.Repositories
             _logger.LogInformation("Fin RegistrarInicioIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
         }
 
-        public async Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null)
+        public async Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null, string? mensajeCorto = null)
         {
             _logger.LogInformation("Inicio ActualizarResultadoIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
             string server = "server2019";
@@ -146,6 +148,8 @@ namespace HG.CFDI.DATA.Repositories
 
             entidad.Estatus = estatus;
             entidad.FechaProximoIntento = fechaProximoIntento;
+            if (!string.IsNullOrWhiteSpace(mensajeCorto))
+                entidad.MensajeCorto = mensajeCorto;
             await context.SaveChangesAsync();
 
             var historico = await context.liquidacionOperadorHists

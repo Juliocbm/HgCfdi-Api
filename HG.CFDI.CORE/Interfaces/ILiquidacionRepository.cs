@@ -11,9 +11,9 @@ namespace HG.CFDI.CORE.Interfaces
 
         Task<liquidacionOperador?> ObtenerCabeceraAsync(int idCompania, int idLiquidacion);
 
-        Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson);
+        Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson, string? mensajeCorto = null);
 
-        Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null);
+        Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null, string? mensajeCorto = null);
 
         Task RegistrarErrorIntentoAsync(int idCompania, int idLiquidacion, short numeroIntento, string error);
     }
