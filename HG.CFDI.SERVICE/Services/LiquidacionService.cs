@@ -7,6 +7,7 @@ using System.Text.Json;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net.Http;
 using HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat;
 using System.Text;
 
@@ -46,12 +47,16 @@ namespace HG.CFDI.SERVICE.Services
         {
             var respuesta = new UniqueResponse();
 
-            // Estatus 1 = EnProceso
-            await _repository.ActualizarEstatusAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.EnProceso);
+            var cabecera = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
+            if (cabecera != null && cabecera.Estatus == (byte)EstatusLiquidacion.Timbrado)
+            {
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "La liquidación ya fue timbrada";
+                return respuesta;
+            }
 
             string? database = ObtenerDatabase(idCompania);
 
-            // Obtener datos de liquidación
             var liquidacion = await ObtenerLiquidacion(idCompania, noLiquidacion);
             if (liquidacion == null)
             {
@@ -60,12 +65,10 @@ namespace HG.CFDI.SERVICE.Services
                 return respuesta;
             }
 
-            // Generar el request para Buzón E
-            var request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
-
-            // Guardar histórico de la liquidación
             string liquidacionJson = JsonSerializer.Serialize(liquidacion);
-            await _repository.InsertarHistoricoAsync(idCompania, noLiquidacion, liquidacionJson);
+            await _repository.RegistrarInicioIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.EnProceso, liquidacionJson);
+
+            var request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
 
             try
             {
@@ -82,7 +85,7 @@ namespace HG.CFDI.SERVICE.Services
                     // Timbrado exitoso
                     byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
 
-                    await _repository.ActualizarEstatusAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.Timbrado); // Estatus 5 = Timbrado
+                    await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.Timbrado);
                     await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, xmlBytes, null, responseServicio.uuid);
 
                     respuesta.IsSuccess = true;
@@ -93,7 +96,7 @@ namespace HG.CFDI.SERVICE.Services
                 else
                 {
                     // Error en timbrado del PAC
-                    await RegistrarFalloDeTimbrado(idCompania, noLiquidacion);
+                    await RegistrarFalloDeTimbrado(idCompania, noLiquidacion, false);
 
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
@@ -105,7 +108,8 @@ namespace HG.CFDI.SERVICE.Services
             catch (Exception ex)
             {
                 // Fallo inesperado
-                await RegistrarFalloDeTimbrado(idCompania, noLiquidacion);
+                bool transitorio = ex is TimeoutException || ex is HttpRequestException;
+                await RegistrarFalloDeTimbrado(idCompania, noLiquidacion, transitorio);
 
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Ocurrió un error al timbrar";
@@ -115,9 +119,18 @@ namespace HG.CFDI.SERVICE.Services
             return respuesta;
         }
 
-        private async Task RegistrarFalloDeTimbrado(int idCompania, int noLiquidacion)
+        private async Task RegistrarFalloDeTimbrado(int idCompania, int noLiquidacion, bool transitorio)
         {
-            await _repository.ActualizarEstatusAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision); // Estatus 2 = ErrorValidacion
+            if (transitorio)
+            {
+                DateTime proximo = DateTime.UtcNow.AddHours(1);
+                await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.ErrorTransitorio, proximo);
+            }
+            else
+            {
+                await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision);
+            }
+
             await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, null, null, null);
         }
 

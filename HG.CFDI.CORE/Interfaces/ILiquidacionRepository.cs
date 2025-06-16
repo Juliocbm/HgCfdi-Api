@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CFDI.Data.Entities;
 
 namespace HG.CFDI.CORE.Interfaces
 {
@@ -6,10 +7,12 @@ namespace HG.CFDI.CORE.Interfaces
     {
         Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion);
 
-        Task ActualizarEstatusAsync(int idCompania, int idLiquidacion, byte estatus);
-
         Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
 
-        Task InsertarHistoricoAsync(int idCompania, int idLiquidacion, string liquidacionJson);
+        Task<liquidacionOperador?> ObtenerCabeceraAsync(int idCompania, int idLiquidacion);
+
+        Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson);
+
+        Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null);
     }
 }
