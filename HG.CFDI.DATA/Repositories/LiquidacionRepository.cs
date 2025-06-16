@@ -1,5 +1,6 @@
 using HG.CFDI.CORE.ContextFactory;
 using HG.CFDI.CORE.Interfaces;
+using HG.CFDI.CORE.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -102,7 +103,7 @@ namespace HG.CFDI.DATA.Repositories
                         IdLiquidacion = idLiquidacion,
                         IdCompania = idCompania,
                         NumeroIntento = nuevoIntento,
-                        EstadoIntento = ObtenerNombreEstado(estatus),
+                        EstadoIntento = ObtenerNombreEstado((EstatusLiquidacion)estatus),
                         SnapshotData = liquidacionJson,
                         FechaIntento = DateTime.UtcNow
                     };
@@ -144,7 +145,7 @@ namespace HG.CFDI.DATA.Repositories
 
             if (historico != null)
             {
-                historico.EstadoIntento = ObtenerNombreEstado(estatus);
+                historico.EstadoIntento = ObtenerNombreEstado((EstatusLiquidacion)estatus);
                 await context.SaveChangesAsync();
             }
         }
@@ -168,14 +169,14 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public string ObtenerNombreEstado(byte estatus) => estatus switch
+        public string ObtenerNombreEstado(EstatusLiquidacion estatus) => estatus switch
         {
-            0 => "Pendiente",
-            1 => "EnProceso",
-            2 => "RequiereRevision",
-            3 => "Timbrado",
-            4 => "ErrorTransitorio",
-            5 => "Migrada",
+            EstatusLiquidacion.Pendiente => "Pendiente",
+            EstatusLiquidacion.EnProceso => "EnProceso",
+            EstatusLiquidacion.RequiereRevision => "RequiereRevision",
+            EstatusLiquidacion.Timbrado => "Timbrado",
+            EstatusLiquidacion.ErrorTransitorio => "ErrorTransitorio",
+            EstatusLiquidacion.Migrada => "Migrada",
             _ => "Desconocido"
         };
     }

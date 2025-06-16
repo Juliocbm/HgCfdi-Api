@@ -134,15 +134,6 @@ namespace HG.CFDI.SERVICE.Services
             await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, null, null, null);
         }
 
-        public enum EstatusLiquidacion : byte
-        {
-            Pendiente = 0,
-            EnProceso = 1,
-            ErrorTransitorio = 4,
-            RequiereRevision = 2,
-            Timbrado = 3,
-            Migrada = 5
-        }
 
         private static string? ObtenerDatabase(int idCompania)
         {
