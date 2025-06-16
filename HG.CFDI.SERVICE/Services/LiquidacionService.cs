@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace HG.CFDI.SERVICE.Services
 {
@@ -83,7 +84,26 @@ namespace HG.CFDI.SERVICE.Services
             string liquidacionJson = JsonSerializer.Serialize(liquidacion);
             await _repository.RegistrarInicioIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.EnProceso, liquidacionJson);
 
-            var request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
+
+            RequestBE request = new();
+
+            try
+            {
+                request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
+            }
+            catch (Exception ex)
+            {
+                bool transitorio = ex is TimeoutException || ex is HttpRequestException;
+                await RegistrarFalloDeTimbrado(idCompania, noLiquidacion, transitorio);
+
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "Ocurrió un error al timbrar";
+                respuesta.Errores.Add(ex.Message);
+
+                var cabeceraActual = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
+                if (cabeceraActual != null)
+                    await _repository.RegistrarErrorIntentoAsync(idCompania, noLiquidacion, cabeceraActual.UltimoIntento, ex.Message);
+            }
 
             try
             {

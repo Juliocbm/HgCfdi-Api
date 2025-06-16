@@ -146,21 +146,21 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 Antigüedad = liquidacion.ComplementoReceptor.Antiguedad,
                 TipoContrato = (BuzonE.c_TipoContrato)Enum.Parse(typeof(BuzonE.c_TipoContrato), "Item" + liquidacion.ComplementoReceptor.TipoContrato),
                 TipoRegimen = (BuzonE.c_TipoRegimen)Enum.Parse(typeof(BuzonE.c_TipoRegimen), "Item" + liquidacion.ComplementoReceptor.TipoRegimen),
-                NumEmpleado = liquidacion.ComplementoReceptor.num_empleado,
+                NumEmpleado = liquidacion.ComplementoReceptor.NumEmpleado,
                 Departamento = liquidacion.ComplementoReceptor.Departamento,
                 Puesto = liquidacion.ComplementoReceptor.Puesto,
                 RiesgoPuestoSpecified = true,
                 RiesgoPuesto = (BuzonE.c_RiesgoPuesto)Enum.Parse(typeof(BuzonE.c_RiesgoPuesto), "Item" + liquidacion.ComplementoReceptor.RiesgoPuesto),
                 PeriodicidadPago = (BuzonE.c_PeriodicidadPago)Enum.Parse(typeof(BuzonE.c_PeriodicidadPago), "Item" + liquidacion.ComplementoReceptor.PeriodicidadPago),
-                BancoSpecified = !string.IsNullOrEmpty(liquidacion.ComplementoReceptor.Banco),
-                Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.Banco) ? BuzonE.c_Banco.Item002 : (BuzonE.c_Banco)Enum.Parse(typeof(BuzonE.c_Banco), "Item" + liquidacion.ComplementoReceptor.Banco),
+                BancoSpecified = !string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco),
+                Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco) ? BuzonE.c_Banco.Item058: (BuzonE.c_Banco)Enum.Parse(typeof(BuzonE.c_Banco), "Item" + liquidacion.ComplementoReceptor.ClaveBanco),
                 SalarioBaseCotAporSpecified = true,
                 SalarioBaseCotApor = liquidacion.ComplementoReceptor.SalarioBaseCotApor,
                 SalarioDiarioIntegradoSpecified = true,
                 SalarioDiarioIntegrado = liquidacion.ComplementoReceptor.SalarioDiarioIntegrado,
                 ClaveEntFed = (BuzonE.c_Estado)Enum.Parse(typeof(BuzonE.c_Estado), liquidacion.ComplementoReceptor.ClaveEntFed)
             };
-
+           
             complemento.Nomina = new[] { nomina };
             comprobante.Complemento = new[] { complemento };
             request.Comprobante = comprobante;

@@ -24,7 +24,6 @@ namespace HG.CFDI.DATA.Repositories
 
         public async Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion)
         {
-            _logger.LogInformation("Inicio ObtenerDatosNominaJson Database:{Database} Liquidacion:{IdLiquidacion}", database, idLiquidacion);
             string server = database switch
             {
                 "hgdb_lis" => "server2019",
@@ -40,7 +39,7 @@ namespace HG.CFDI.DATA.Repositories
             command.CommandText = "cfdi.obtenerDatosNominaJSON";
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.Add(new SqlParameter("@Database", database));
-            command.Parameters.Add(new SqlParameter("@IdLiquidacion", idLiquidacion));
+            command.Parameters.Add(new SqlParameter("@NoLiquidacion", idLiquidacion));
 
             await context.Database.OpenConnectionAsync();
             try
@@ -48,11 +47,8 @@ namespace HG.CFDI.DATA.Repositories
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    var result = reader.IsDBNull(0) ? null : reader.GetString(0);
-                    _logger.LogInformation("Fin ObtenerDatosNominaJson Database:{Database} Liquidacion:{IdLiquidacion}", database, idLiquidacion);
-                    return result;
+                    return reader.IsDBNull(0) ? null : reader.GetString(0);
                 }
-                _logger.LogInformation("Fin ObtenerDatosNominaJson Database:{Database} Liquidacion:{IdLiquidacion}", database, idLiquidacion);
                 return null;
             }
             finally
