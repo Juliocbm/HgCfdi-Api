@@ -8,5 +8,6 @@ namespace HG.CFDI.CORE.Interfaces
     {
         Task<CfdiNomina?> ObtenerLiquidacion(int idCompania, int noLiquidacion);
         Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion);
+        Task<UniqueResponse> ObtenerDocumentosTimbradosAsync(int idCompania, int idLiquidacion);
     }
 }
