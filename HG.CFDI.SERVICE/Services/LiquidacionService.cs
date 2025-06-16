@@ -17,34 +17,47 @@ namespace HG.CFDI.SERVICE.Services
     {
         private readonly ILiquidacionRepository _repository;
         private readonly IValidacionesNominaSatService _validacionesNominaSat;
+        private readonly ILogger<LiquidacionService> _logger;
 
-        public LiquidacionService(IValidacionesNominaSatService validacionesNominaSat, ILiquidacionRepository repository, IOptions<List<BuzonEApiCredential>> buzonEOptions)
+        public LiquidacionService(IValidacionesNominaSatService validacionesNominaSat, ILiquidacionRepository repository, IOptions<List<BuzonEApiCredential>> buzonEOptions, ILogger<LiquidacionService> logger)
         {
             _repository = repository;
             _validacionesNominaSat = validacionesNominaSat;
+            _logger = logger;
         }
 
         public async Task<CfdiNomina?> ObtenerLiquidacion(int idCompania, int noLiquidacion)
         {
+            _logger.LogInformation("Inicio ObtenerLiquidacion Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
             string? database = ObtenerDatabase(idCompania);
             if (string.IsNullOrEmpty(database))
+            {
+                _logger.LogInformation("Fin ObtenerLiquidacion Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
                 return null;
+            }
 
             var json = await _repository.ObtenerDatosNominaJson(database, noLiquidacion);
             if (string.IsNullOrWhiteSpace(json))
+            {
+                _logger.LogInformation("Fin ObtenerLiquidacion Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
                 return null;
+            }
             try
             {
-                return JsonSerializer.Deserialize<CfdiNomina>(json);
+                var result = JsonSerializer.Deserialize<CfdiNomina>(json);
+                _logger.LogInformation("Fin ObtenerLiquidacion Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
+                return result;
             }
             catch
             {
+                _logger.LogInformation("Fin ObtenerLiquidacion Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
                 return null;
             }
         }
      
         public async Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion)
         {
+            _logger.LogInformation("Inicio TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
             var respuesta = new UniqueResponse();
 
             var cabecera = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
@@ -52,6 +65,7 @@ namespace HG.CFDI.SERVICE.Services
             {
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "La liquidación ya fue timbrada";
+                _logger.LogInformation("Fin TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
                 return respuesta;
             }
 
@@ -62,6 +76,7 @@ namespace HG.CFDI.SERVICE.Services
             {
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "Liquidación no encontrada";
+                _logger.LogInformation("Fin TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
                 return respuesta;
             }
 
@@ -116,6 +131,7 @@ namespace HG.CFDI.SERVICE.Services
                 respuesta.Errores.Add(ex.Message);
             }
 
+            _logger.LogInformation("Fin TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
             return respuesta;
         }
 
