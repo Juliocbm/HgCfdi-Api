@@ -169,6 +169,32 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
+        public async Task RegistrarErrorIntentoAsync(int idCompania, int idLiquidacion, short numeroIntento, string error)
+        {
+            string server = "server2019";
+
+            var options = _dbContextFactory.CreateDbContextOptions(server);
+            using var context = new CfdiDbContext(options);
+
+            var historico = await context.liquidacionOperadorHists
+                .Where(h => h.IdLiquidacion == idLiquidacion && h.IdCompania == idCompania && h.NumeroIntento == numeroIntento)
+                .OrderByDescending(h => h.IdHistorico)
+                .FirstOrDefaultAsync();
+
+            var registro = new liquidacionOperadorHistError
+            {
+                IdHistorico = historico?.IdHistorico ?? 0,
+                IdLiquidacion = idLiquidacion,
+                IdCompania = idCompania,
+                NumeroIntento = numeroIntento,
+                TextoError = error
+            };
+
+            context.liquidacionOperadorHistErrors.Add(registro);
+            await context.SaveChangesAsync();
+        }
+
+
         public string ObtenerNombreEstado(EstatusLiquidacion estatus) => estatus switch
         {
             EstatusLiquidacion.Pendiente => "Pendiente",
