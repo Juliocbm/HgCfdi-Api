@@ -82,7 +82,7 @@ namespace HG.CFDI.SERVICE.Services
             }
 
             string liquidacionJson = JsonSerializer.Serialize(liquidacion);
-            await _repository.RegistrarInicioIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.EnProceso, liquidacionJson);
+            await _repository.RegistrarInicioIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.EnProceso, liquidacionJson, ObtenerMensajePorEstatus(EstatusLiquidacion.EnProceso));
 
 
             RequestBE request = new();
@@ -120,7 +120,7 @@ namespace HG.CFDI.SERVICE.Services
                     // Timbrado exitoso
                     byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
 
-                    await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.Timbrado);
+                    await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.Timbrado, null, ObtenerMensajePorEstatus(EstatusLiquidacion.Timbrado));
                     await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, xmlBytes, null, responseServicio.uuid);
 
                     respuesta.IsSuccess = true;
@@ -169,15 +169,26 @@ namespace HG.CFDI.SERVICE.Services
             if (transitorio)
             {
                 DateTime proximo = DateTime.UtcNow.AddHours(1);
-                await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.ErrorTransitorio, proximo);
+                await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.ErrorTransitorio, proximo, ObtenerMensajePorEstatus(EstatusLiquidacion.ErrorTransitorio));
             }
             else
             {
-                await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision);
+                await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.RequiereRevision, null, ObtenerMensajePorEstatus(EstatusLiquidacion.RequiereRevision));
             }
 
             await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, null, null, null);
         }
+
+        private static string ObtenerMensajePorEstatus(EstatusLiquidacion estatus) => estatus switch
+        {
+            EstatusLiquidacion.Pendiente => "Pendiente",
+            EstatusLiquidacion.EnProceso => "En proceso",
+            EstatusLiquidacion.ErrorTransitorio => "Error transitorio",
+            EstatusLiquidacion.RequiereRevision => "Requiere revisión",
+            EstatusLiquidacion.Timbrado => "Timbrado exitoso",
+            EstatusLiquidacion.Migrada => "Migrada",
+            _ => "Desconocido"
+        };
 
 
         private static string? ObtenerDatabase(int idCompania)
