@@ -56,13 +56,23 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task ActualizarEstatusAsync(int idCompania, int idLiquidacion, byte estatus)
+        public async Task<liquidacionOperador?> ObtenerCabeceraAsync(int idCompania, int idLiquidacion)
+        {
+            string server = "server2019";
+
+            var options = _dbContextFactory.CreateDbContextOptions(server);
+            using var context = new CfdiDbContext(options);
+
+            return await context.liquidacionOperadors
+                .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
+        }
+
+        public async Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson)
         {
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
 
-            // Create execution strategy to retry the transaction if needed
             var executionStrategy = new CfdiDbContext(options).Database.CreateExecutionStrategy();
 
             await executionStrategy.ExecuteAsync(async () =>
@@ -72,40 +82,34 @@ namespace HG.CFDI.DATA.Repositories
 
                 try
                 {
-                    // Buscar registro principal
                     var entidad = await context.liquidacionOperadors
                         .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
 
                     if (entidad is null)
                         throw new InvalidOperationException("Liquidacion no encontrada.");
 
-                    // Incrementar numero de intento
                     short nuevoIntento = (short)(entidad.Intentos + 1);
 
-                    // Actualizacion de campos en la tabla principal
                     entidad.Estatus = estatus;
                     entidad.Intentos = nuevoIntento;
                     entidad.UltimoIntento = nuevoIntento;
-                    entidad.FechaProximoIntento = null; // si aplica logica de reintento
+                    entidad.FechaProximoIntento = null;
 
-                    // Guardar cambios en tabla principal
                     await context.SaveChangesAsync();
 
-                    // Insertar historico
                     var historico = new liquidacionOperadorHist
                     {
                         IdLiquidacion = idLiquidacion,
                         IdCompania = idCompania,
                         NumeroIntento = nuevoIntento,
-                        EstadoIntento = ObtenerNombreEstado(estatus), // puedes mapear el estatus a texto
-                        SnapshotData = null, // o serializacion si tienes una fuente
+                        EstadoIntento = ObtenerNombreEstado(estatus),
+                        SnapshotData = liquidacionJson,
                         FechaIntento = DateTime.UtcNow
                     };
 
                     context.liquidacionOperadorHists.Add(historico);
                     await context.SaveChangesAsync();
 
-                    // Confirmar transaccion
                     await transaction.CommitAsync();
                 }
                 catch
@@ -114,6 +118,35 @@ namespace HG.CFDI.DATA.Repositories
                     throw;
                 }
             });
+        }
+
+        public async Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null)
+        {
+            string server = "server2019";
+
+            var options = _dbContextFactory.CreateDbContextOptions(server);
+            using var context = new CfdiDbContext(options);
+
+            var entidad = await context.liquidacionOperadors
+                .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
+
+            if (entidad is null)
+                throw new InvalidOperationException("Liquidacion no encontrada.");
+
+            entidad.Estatus = estatus;
+            entidad.FechaProximoIntento = fechaProximoIntento;
+            await context.SaveChangesAsync();
+
+            var historico = await context.liquidacionOperadorHists
+                .Where(h => h.IdLiquidacion == idLiquidacion && h.IdCompania == idCompania && h.NumeroIntento == entidad.UltimoIntento)
+                .OrderByDescending(h => h.IdHistorico)
+                .FirstOrDefaultAsync();
+
+            if (historico != null)
+            {
+                historico.EstadoIntento = ObtenerNombreEstado(estatus);
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
@@ -133,25 +166,6 @@ namespace HG.CFDI.DATA.Repositories
                 entidad.UUID = uuid;
                 await context.SaveChangesAsync();
             }
-        }
-
-        public async Task InsertarHistoricoAsync(int idCompania, int idLiquidacion, string liquidacionJson)
-        {
-            string server = "server2019";
-
-            var options = _dbContextFactory.CreateDbContextOptions(server);
-            using var context = new CfdiDbContext(options);
-
-            var nuevoHistorial = new liquidacionOperadorHist
-            {
-                IdLiquidacion = idLiquidacion,
-                IdCompania = idCompania,
-                SnapshotData = liquidacionJson,
-                FechaIntento = DateTime.UtcNow
-            };
-
-            context.liquidacionOperadorHists.Add(nuevoHistorial);
-            await context.SaveChangesAsync();
         }
 
         public string ObtenerNombreEstado(byte estatus) => estatus switch
