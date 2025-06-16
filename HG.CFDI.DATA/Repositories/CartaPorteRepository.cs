@@ -101,8 +101,9 @@ namespace HG.CFDI.DATA.Repositories
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error changeStatusCartaPorteAsync no_guia:{NoGuia} compania:{Compania}", no_guia, compania);
                 throw;
             }
         }

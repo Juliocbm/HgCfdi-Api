@@ -24,6 +24,7 @@ namespace HG.CFDI.DATA.Repositories
 
         public async Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion)
         {
+            _logger.LogInformation("Inicio ObtenerDatosNominaJson Database:{Database} Liquidacion:{IdLiquidacion}", database, idLiquidacion);
             string server = database switch
             {
                 "hgdb_lis" => "server2019",
@@ -47,8 +48,11 @@ namespace HG.CFDI.DATA.Repositories
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    return reader.IsDBNull(0) ? null : reader.GetString(0);
+                    var result = reader.IsDBNull(0) ? null : reader.GetString(0);
+                    _logger.LogInformation("Fin ObtenerDatosNominaJson Database:{Database} Liquidacion:{IdLiquidacion}", database, idLiquidacion);
+                    return result;
                 }
+                _logger.LogInformation("Fin ObtenerDatosNominaJson Database:{Database} Liquidacion:{IdLiquidacion}", database, idLiquidacion);
                 return null;
             }
             finally
@@ -59,17 +63,21 @@ namespace HG.CFDI.DATA.Repositories
 
         public async Task<liquidacionOperador?> ObtenerCabeceraAsync(int idCompania, int idLiquidacion)
         {
+            _logger.LogInformation("Inicio ObtenerCabeceraAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
 
-            return await context.liquidacionOperadors
+            var result = await context.liquidacionOperadors
                 .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
+            _logger.LogInformation("Fin ObtenerCabeceraAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+            return result;
         }
 
         public async Task RegistrarInicioIntentoAsync(int idCompania, int idLiquidacion, byte estatus, string liquidacionJson)
         {
+            _logger.LogInformation("Inicio RegistrarInicioIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
@@ -113,16 +121,19 @@ namespace HG.CFDI.DATA.Repositories
 
                     await transaction.CommitAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error RegistrarInicioIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
                     throw;
                 }
             });
+            _logger.LogInformation("Fin RegistrarInicioIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
         }
 
         public async Task ActualizarResultadoIntentoAsync(int idCompania, int idLiquidacion, byte estatus, DateTime? fechaProximoIntento = null)
         {
+            _logger.LogInformation("Inicio ActualizarResultadoIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
@@ -132,7 +143,10 @@ namespace HG.CFDI.DATA.Repositories
                 .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
 
             if (entidad is null)
+            {
+                _logger.LogInformation("Fin ActualizarResultadoIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
                 throw new InvalidOperationException("Liquidacion no encontrada.");
+            }
 
             entidad.Estatus = estatus;
             entidad.FechaProximoIntento = fechaProximoIntento;
@@ -148,10 +162,12 @@ namespace HG.CFDI.DATA.Repositories
                 historico.EstadoIntento = ObtenerNombreEstado((EstatusLiquidacion)estatus);
                 await context.SaveChangesAsync();
             }
+            _logger.LogInformation("Fin ActualizarResultadoIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
         }
 
         public async Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
         {
+            _logger.LogInformation("Inicio InsertarDocTimbradoLiqAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
@@ -167,6 +183,7 @@ namespace HG.CFDI.DATA.Repositories
                 entidad.UUID = uuid;
                 await context.SaveChangesAsync();
             }
+            _logger.LogInformation("Fin InsertarDocTimbradoLiqAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
         }
 
         public async Task RegistrarErrorIntentoAsync(int idCompania, int idLiquidacion, short numeroIntento, string error)
