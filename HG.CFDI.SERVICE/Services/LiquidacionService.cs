@@ -103,6 +103,9 @@ namespace HG.CFDI.SERVICE.Services
                 var cabeceraActual = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
                 if (cabeceraActual != null)
                     await _repository.RegistrarErrorIntentoAsync(idCompania, noLiquidacion, cabeceraActual.UltimoIntento, ex.Message);
+
+                _logger.LogInformation("Fin TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
+                return respuesta;
             }
 
             try
