@@ -61,53 +61,59 @@ namespace HG.CFDI.DATA.Repositories
             string server = "server2019";
 
             var options = _dbContextFactory.CreateDbContextOptions(server);
-            using var context = new CfdiDbContext(options);
 
-            using var transaction = await context.Database.BeginTransactionAsync();
+            // Create execution strategy to retry the transaction if needed
+            var executionStrategy = new CfdiDbContext(options).Database.CreateExecutionStrategy();
 
-            try
+            await executionStrategy.ExecuteAsync(async () =>
             {
-                // Buscar registro principal
-                var entidad = await context.liquidacionOperadors
-                    .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
+                await using var context = new CfdiDbContext(options);
+                await using var transaction = await context.Database.BeginTransactionAsync();
 
-                if (entidad is null)
-                    throw new InvalidOperationException("Liquidación no encontrada.");
-
-                // Incrementar número de intento
-                short nuevoIntento = (short)(entidad.Intentos + 1);
-
-                // Actualización de campos en la tabla principal
-                entidad.Estatus = estatus;
-                entidad.Intentos = nuevoIntento;
-                entidad.UltimoIntento = nuevoIntento;
-                entidad.FechaProximoIntento = null; // si aplica lógica de reintento
-
-                // Guardar cambios en tabla principal
-                await context.SaveChangesAsync();
-
-                // Insertar histórico
-                var historico = new liquidacionOperadorHist
+                try
                 {
-                    IdLiquidacion = idLiquidacion,
-                    IdCompania = idCompania,
-                    NumeroIntento = nuevoIntento,
-                    EstadoIntento = ObtenerNombreEstado(estatus), // puedes mapear el estatus a texto
-                    SnapshotData = null, // o serialización si tienes una fuente
-                    FechaIntento = DateTime.UtcNow
-                };
+                    // Buscar registro principal
+                    var entidad = await context.liquidacionOperadors
+                        .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
 
-                context.liquidacionOperadorHists.Add(historico);
-                await context.SaveChangesAsync();
+                    if (entidad is null)
+                        throw new InvalidOperationException("Liquidacion no encontrada.");
 
-                // Confirmar transacción
-                await transaction.CommitAsync();
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+                    // Incrementar numero de intento
+                    short nuevoIntento = (short)(entidad.Intentos + 1);
+
+                    // Actualizacion de campos en la tabla principal
+                    entidad.Estatus = estatus;
+                    entidad.Intentos = nuevoIntento;
+                    entidad.UltimoIntento = nuevoIntento;
+                    entidad.FechaProximoIntento = null; // si aplica logica de reintento
+
+                    // Guardar cambios en tabla principal
+                    await context.SaveChangesAsync();
+
+                    // Insertar historico
+                    var historico = new liquidacionOperadorHist
+                    {
+                        IdLiquidacion = idLiquidacion,
+                        IdCompania = idCompania,
+                        NumeroIntento = nuevoIntento,
+                        EstadoIntento = ObtenerNombreEstado(estatus), // puedes mapear el estatus a texto
+                        SnapshotData = null, // o serializacion si tienes una fuente
+                        FechaIntento = DateTime.UtcNow
+                    };
+
+                    context.liquidacionOperadorHists.Add(historico);
+                    await context.SaveChangesAsync();
+
+                    // Confirmar transaccion
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
