@@ -18,12 +18,14 @@ namespace HG.CFDI.SERVICE.Services
     {
         private readonly ILiquidacionRepository _repository;
         private readonly IValidacionesNominaSatService _validacionesNominaSat;
+        private readonly IDocumentosService _documentosService;
         private readonly ILogger<LiquidacionService> _logger;
 
-        public LiquidacionService(IValidacionesNominaSatService validacionesNominaSat, ILiquidacionRepository repository, IOptions<List<BuzonEApiCredential>> buzonEOptions, ILogger<LiquidacionService> logger)
+        public LiquidacionService(IValidacionesNominaSatService validacionesNominaSat, ILiquidacionRepository repository, IOptions<List<BuzonEApiCredential>> buzonEOptions, IDocumentosService documentosService, ILogger<LiquidacionService> logger)
         {
             _repository = repository;
             _validacionesNominaSat = validacionesNominaSat;
+            _documentosService = documentosService;
             _logger = logger;
         }
 
@@ -122,14 +124,15 @@ namespace HG.CFDI.SERVICE.Services
                 {
                     // Timbrado exitoso
                     byte[] xmlBytes = Encoding.UTF8.GetBytes(responseServicio.xmlCFDTimbrado);
+                    byte[] pdfBytes = await _documentosService.GetPdfNominaTimbrado(responseServicio.xmlCFDTimbrado, database);
 
                     await _repository.ActualizarResultadoIntentoAsync(idCompania, noLiquidacion, (byte)EstatusLiquidacion.Timbrado, null, ObtenerMensajePorEstatus(EstatusLiquidacion.Timbrado));
-                    await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, xmlBytes, null, responseServicio.uuid);
+                    await _repository.InsertarDocTimbradoLiqAsync(idCompania, noLiquidacion, xmlBytes, pdfBytes, responseServicio.uuid);
 
                     respuesta.IsSuccess = true;
                     respuesta.Mensaje = "Timbrado exitoso";
                     respuesta.XmlByteArray = xmlBytes;
-                    respuesta.PdfByteArray = Array.Empty<byte>(); // si vas a generar PDF luego
+                    respuesta.PdfByteArray = pdfBytes; // si vas a generar PDF luego
                 }
                 else
                 {
