@@ -18,9 +18,23 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
 
         public Task<RequestBE> ConstruirRequestBuzonEAsync(CfdiNomina liquidacion, string database)
         {
+            if (liquidacion is null)
+                throw new ArgumentNullException(nameof(liquidacion), "La liquidación es requerida");
+
             var cred = _buzonEApiCredentials.FirstOrDefault(c => c.Database.Equals(database, StringComparison.OrdinalIgnoreCase));
             if (cred == null)
-                throw new InvalidOperationException($"No se encontraron credenciales para {database}");
+                throw new InvalidOperationException($"No se encontraron credenciales configuradas para la base de datos '{database}'.");
+
+            if (liquidacion.Emisor == null)
+                throw new ArgumentException("La información del emisor es requerida.", nameof(liquidacion.Emisor));
+            if (liquidacion.Receptor == null)
+                throw new ArgumentException("La información del receptor es requerida.", nameof(liquidacion.Receptor));
+            if (liquidacion.Nomina == null)
+                throw new ArgumentException("La información de nómina es requerida.", nameof(liquidacion.Nomina));
+            if (liquidacion.ComplementoEmisor == null)
+                throw new ArgumentException("El complemento del emisor es requerido.", nameof(liquidacion.ComplementoEmisor));
+            if (liquidacion.ComplementoReceptor == null)
+                throw new ArgumentException("El complemento del receptor es requerido.", nameof(liquidacion.ComplementoReceptor));
 
             var request = new RequestBE
             {
@@ -42,23 +56,23 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 Folio = liquidacion.Folio.ToString(),
                 FechaSpecified = true,
                 Fecha = liquidacion.Fecha,
-                Moneda = Enum.Parse<BuzonE.c_Moneda>(liquidacion.Moneda),
-                Exportacion = (BuzonE.c_Exportacion)Enum.Parse(typeof(c_Exportacion), "Item" + liquidacion.Exportacion),
+                Moneda = ParseEnumSafe<BuzonE.c_Moneda>(liquidacion.Moneda, nameof(liquidacion.Moneda)),
+                Exportacion = ParseEnumSafe<BuzonE.c_Exportacion>(liquidacion.Exportacion, nameof(liquidacion.Exportacion), true),
                 SubTotal = liquidacion.TotalesPercepciones.TotalPercepciones,
                 DescuentoSpecified = true,
                 Descuento = liquidacion.TotalesDeducciones.TotalDeducciones,
                 Total = liquidacion.TotalesPercepciones.TotalPercepciones - liquidacion.TotalesDeducciones.TotalDeducciones,
                 LugarExpedicion = liquidacion.LugarExpedicion.ToString(),
                 MetodoPagoSpecified = true,
-                MetodoPago = Enum.Parse<BuzonE.c_MetodoPago>(liquidacion.MetodoPago),
-                TipoDeComprobante = Enum.Parse<BuzonE.c_TipoDeComprobante>(liquidacion.TipoDeComprobante)
+                MetodoPago = ParseEnumSafe<BuzonE.c_MetodoPago>(liquidacion.MetodoPago, nameof(liquidacion.MetodoPago)),
+                TipoDeComprobante = ParseEnumSafe<BuzonE.c_TipoDeComprobante>(liquidacion.TipoDeComprobante, nameof(liquidacion.TipoDeComprobante))
             };
 
             comprobante.Emisor = new BuzonE.ComprobanteEmisor
             {
                 Rfc = liquidacion.Emisor.rfc,
                 Nombre = liquidacion.Emisor.nombre,
-                RegimenFiscal = (BuzonE.c_RegimenFiscal)Enum.Parse(typeof(BuzonE.c_RegimenFiscal), "Item" + liquidacion.Emisor.claveSAT)
+                RegimenFiscal = ParseEnumSafe<BuzonE.c_RegimenFiscal>(liquidacion.Emisor.claveSAT, nameof(liquidacion.Emisor.claveSAT), true)
             };
 
             comprobante.Receptor = new BuzonE.ComprobanteReceptor
@@ -66,8 +80,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 Rfc = liquidacion.Receptor.rfc,
                 Nombre = liquidacion.Receptor.nombre,
                 DomicilioFiscalReceptor = liquidacion.Receptor.DomicilioFiscalReceptor,
-                RegimenFiscalReceptor = (BuzonE.c_RegimenFiscal)Enum.Parse(typeof(BuzonE.c_RegimenFiscal), "Item" + liquidacion.Receptor.RegimenFiscalReceptor),
-                UsoCFDI = (BuzonE.c_UsoCFDI)Enum.Parse(typeof(BuzonE.c_UsoCFDI), liquidacion.Receptor.UsoCFDI)
+                RegimenFiscalReceptor = ParseEnumSafe<BuzonE.c_RegimenFiscal>(liquidacion.Receptor.RegimenFiscalReceptor, nameof(liquidacion.Receptor.RegimenFiscalReceptor), true),
+                UsoCFDI = ParseEnumSafe<BuzonE.c_UsoCFDI>(liquidacion.Receptor.UsoCFDI, nameof(liquidacion.Receptor.UsoCFDI))
             };
 
             comprobante.Conceptos = new[]
@@ -90,7 +104,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
             var nomina = new BuzonE.Nomina
             {
                 Version = liquidacion.Nomina.Version,
-                TipoNomina = (BuzonE.c_TipoNomina)Enum.Parse(typeof(BuzonE.c_TipoNomina), liquidacion.Nomina.TipoNomina),
+                TipoNomina = ParseEnumSafe<BuzonE.c_TipoNomina>(liquidacion.Nomina.TipoNomina, nameof(liquidacion.Nomina.TipoNomina)),
                 FechaPago = liquidacion.Nomina.FechaPago,
                 FechaInicialPago = liquidacion.Nomina.FechaInicialPago,
                 FechaFinalPago = liquidacion.Nomina.FechaFinalPago,
@@ -105,7 +119,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
             {
                 Percepcion = liquidacion.Percepciones.Select(p => new BuzonE.NominaPercepcionesPercepcion
                 {
-                    TipoPercepcion = (BuzonE.c_TipoPercepcion)Enum.Parse(typeof(BuzonE.c_TipoPercepcion), "Item" + p.TipoPercepcion),
+                    TipoPercepcion = ParseEnumSafe<BuzonE.c_TipoPercepcion>(p.TipoPercepcion, nameof(p.TipoPercepcion), true),
                     Clave = p.Clave,
                     Concepto = p.Concepto,
                     ImporteGravado = p.ImporteGravado,
@@ -121,7 +135,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
             {
                 Deduccion = liquidacion.Deducciones.Select(d => new BuzonE.NominaDeduccionesDeduccion
                 {
-                    TipoDeduccion = (BuzonE.c_TipoDeduccion)Enum.Parse(typeof(BuzonE.c_TipoDeduccion), "Item" + d.TipoDeduccion.PadLeft(3, '0')),
+                    TipoDeduccion = ParseEnumSafe<BuzonE.c_TipoDeduccion>(d.TipoDeduccion.PadLeft(3, '0'), nameof(d.TipoDeduccion), true),
                     Clave = d.Clave.ToString("000000"),
                     Concepto = d.Concepto,
                     Importe = d.Importe
@@ -144,21 +158,21 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 FechaInicioRelLaboralSpecified = true,
                 FechaInicioRelLaboral = liquidacion.ComplementoReceptor.FechaInicioRelLaboral,
                 Antigüedad = liquidacion.ComplementoReceptor.Antiguedad,
-                TipoContrato = (BuzonE.c_TipoContrato)Enum.Parse(typeof(BuzonE.c_TipoContrato), "Item" + liquidacion.ComplementoReceptor.TipoContrato),
-                TipoRegimen = (BuzonE.c_TipoRegimen)Enum.Parse(typeof(BuzonE.c_TipoRegimen), "Item" + liquidacion.ComplementoReceptor.TipoRegimen),
+                TipoContrato = ParseEnumSafe<BuzonE.c_TipoContrato>(liquidacion.ComplementoReceptor.TipoContrato, nameof(liquidacion.ComplementoReceptor.TipoContrato), true),
+                TipoRegimen = ParseEnumSafe<BuzonE.c_TipoRegimen>(liquidacion.ComplementoReceptor.TipoRegimen, nameof(liquidacion.ComplementoReceptor.TipoRegimen), true),
                 NumEmpleado = liquidacion.ComplementoReceptor.NumEmpleado,
                 Departamento = liquidacion.ComplementoReceptor.Departamento,
                 Puesto = liquidacion.ComplementoReceptor.Puesto,
                 RiesgoPuestoSpecified = true,
-                RiesgoPuesto = (BuzonE.c_RiesgoPuesto)Enum.Parse(typeof(BuzonE.c_RiesgoPuesto), "Item" + liquidacion.ComplementoReceptor.RiesgoPuesto),
-                PeriodicidadPago = (BuzonE.c_PeriodicidadPago)Enum.Parse(typeof(BuzonE.c_PeriodicidadPago), "Item" + liquidacion.ComplementoReceptor.PeriodicidadPago),
+                RiesgoPuesto = ParseEnumSafe<BuzonE.c_RiesgoPuesto>(liquidacion.ComplementoReceptor.RiesgoPuesto, nameof(liquidacion.ComplementoReceptor.RiesgoPuesto), true),
+                PeriodicidadPago = ParseEnumSafe<BuzonE.c_PeriodicidadPago>(liquidacion.ComplementoReceptor.PeriodicidadPago, nameof(liquidacion.ComplementoReceptor.PeriodicidadPago), true),
                 BancoSpecified = !string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco),
-                Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco) ? BuzonE.c_Banco.Item058: (BuzonE.c_Banco)Enum.Parse(typeof(BuzonE.c_Banco), "Item" + liquidacion.ComplementoReceptor.ClaveBanco),
+                Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco) ? BuzonE.c_Banco.Item058 : ParseEnumSafe<BuzonE.c_Banco>(liquidacion.ComplementoReceptor.ClaveBanco, nameof(liquidacion.ComplementoReceptor.ClaveBanco), true),
                 SalarioBaseCotAporSpecified = true,
                 SalarioBaseCotApor = liquidacion.ComplementoReceptor.SalarioBaseCotApor,
                 SalarioDiarioIntegradoSpecified = true,
                 SalarioDiarioIntegrado = liquidacion.ComplementoReceptor.SalarioDiarioIntegrado,
-                ClaveEntFed = (BuzonE.c_Estado)Enum.Parse(typeof(BuzonE.c_Estado), liquidacion.ComplementoReceptor.ClaveEntFed)
+                ClaveEntFed = ParseEnumSafe<BuzonE.c_Estado>(liquidacion.ComplementoReceptor.ClaveEntFed, nameof(liquidacion.ComplementoReceptor.ClaveEntFed))
             };
            
             complemento.Nomina = new[] { nomina };
@@ -166,6 +180,14 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
             request.Comprobante = comprobante;
 
             return Task.FromResult(request);
+        }
+
+        private static T ParseEnumSafe<T>(string value, string fieldName, bool prefixItem = false) where T : struct
+        {
+            string toParse = prefixItem ? $"Item{value}" : value;
+            if (!Enum.TryParse(toParse, out T result))
+                throw new ArgumentException($"El valor '{value}' del campo '{fieldName}' es inválido.");
+            return result;
         }
 
     }
