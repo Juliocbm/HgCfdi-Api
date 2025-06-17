@@ -57,6 +57,40 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
+        public async Task<string?> ObtenerLiquidacionesJson(string database)
+        {
+            string server = database switch
+            {
+                "hgdb_lis" => "server2019",
+                "chdb_lis" => "server2008",
+                "rldb_lis" => "server2008",
+                "lindadb" => "server2008",
+                _ => "server2019"
+            };
+
+            var options = _dbContextFactory.CreateDbContextOptions(server);
+            using var context = new CfdiDbContext(options);
+            using var command = context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = "cfdi.obtenerLiquidacionesJSON";
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@Database", database));
+
+            await context.Database.OpenConnectionAsync();
+            try
+            {
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return reader.IsDBNull(0) ? null : reader.GetString(0);
+                }
+                return null;
+            }
+            finally
+            {
+                await context.Database.CloseConnectionAsync();
+            }
+        }
+
         public async Task<liquidacionOperador?> ObtenerCabeceraAsync(int idCompania, int idLiquidacion)
         {
             _logger.LogInformation("Inicio ObtenerCabeceraAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);

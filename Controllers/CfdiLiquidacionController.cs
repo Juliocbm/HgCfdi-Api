@@ -1,6 +1,7 @@
 using HG.CFDI.CORE.Interfaces;
 using HG.CFDI.CORE.Models.DtoLiquidacionCfdi;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace HG.CFDI.API.Controllers
 {
@@ -38,6 +39,31 @@ namespace HG.CFDI.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener la liquidación");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("GetLiquidaciones")]
+        public async Task<IActionResult> GetLiquidaciones(string database)
+        {
+            try
+            {
+                int? idCompania = ObtenerIdCompania(database);
+                if (idCompania is null)
+                {
+                    return BadRequest("Base de datos no válida");
+                }
+
+                var liquidaciones = await _liquidacionService.ObtenerLiquidacionesAsync(idCompania.Value);
+                if (liquidaciones == null || !liquidaciones.Any())
+                {
+                    return NotFound();
+                }
+                return Ok(liquidaciones);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener las liquidaciones");
                 return StatusCode(500, "Internal server error");
             }
         }

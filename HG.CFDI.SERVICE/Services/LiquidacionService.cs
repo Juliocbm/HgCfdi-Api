@@ -57,6 +57,36 @@ namespace HG.CFDI.SERVICE.Services
                 return null;
             }
         }
+
+        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(int idCompania)
+        {
+            _logger.LogInformation("Inicio ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
+            string? database = ObtenerDatabase(idCompania);
+            if (string.IsNullOrEmpty(database))
+            {
+                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
+                return new List<LiquidacionDto>();
+            }
+
+            var json = await _repository.ObtenerLiquidacionesJson(database);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
+                return new List<LiquidacionDto>();
+            }
+
+            try
+            {
+                var result = JsonSerializer.Deserialize<List<LiquidacionDto>>(json);
+                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
+                return result ?? new List<LiquidacionDto>();
+            }
+            catch
+            {
+                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
+                return new List<LiquidacionDto>();
+            }
+        }
      
         public async Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion)
         {
