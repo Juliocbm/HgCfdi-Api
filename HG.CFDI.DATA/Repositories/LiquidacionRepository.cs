@@ -1,6 +1,7 @@
 using HG.CFDI.CORE.ContextFactory;
 using HG.CFDI.CORE.Interfaces;
 using HG.CFDI.CORE.Models;
+using HG.CFDI.CORE.Models.DtoLiquidacionCfdi;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -57,7 +58,7 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task<string?> ObtenerLiquidacionesJson(string database)
+        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(string database)
         {
             string server = database switch
             {
@@ -79,11 +80,24 @@ namespace HG.CFDI.DATA.Repositories
             try
             {
                 using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                var result = new List<LiquidacionDto>();
+                while (await reader.ReadAsync())
                 {
-                    return reader.IsDBNull(0) ? null : reader.GetString(0);
+                    var dto = new LiquidacionDto
+                    {
+                        IdLiquidacion = reader.GetInt32(reader.GetOrdinal("IdLiquidacion")),
+                        Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
+                        Rfc = reader.GetString(reader.GetOrdinal("rfc")),
+                        Fecha = reader.GetDateTime(reader.GetOrdinal("Fecha")),
+                        Intentos = reader.GetFieldValue<short>(reader.GetOrdinal("Intentos")),
+                        ProximoIntento = reader.IsDBNull(reader.GetOrdinal("ProximoIntento")) ? null : reader.GetDateTime(reader.GetOrdinal("ProximoIntento")),
+                        Xml = reader.IsDBNull(reader.GetOrdinal("Xml")) ? null : reader.GetString(reader.GetOrdinal("Xml")),
+                        Pdf = reader.IsDBNull(reader.GetOrdinal("Pdf")) ? null : reader.GetString(reader.GetOrdinal("Pdf")),
+                        Uuid = reader.IsDBNull(reader.GetOrdinal("Uuid")) ? null : reader.GetString(reader.GetOrdinal("Uuid"))
+                    };
+                    result.Add(dto);
                 }
-                return null;
+                return result;
             }
             finally
             {

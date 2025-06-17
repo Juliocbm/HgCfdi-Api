@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
 using CFDI.Data.Entities;
+using HG.CFDI.CORE.Models.DtoLiquidacionCfdi;
 
 namespace HG.CFDI.CORE.Interfaces
 {
     public interface ILiquidacionRepository
     {
         Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion);
-        Task<string?> ObtenerLiquidacionesJson(string database);
+        Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(string database);
 
         Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
 
