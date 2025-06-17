@@ -68,26 +68,11 @@ namespace HG.CFDI.SERVICE.Services
                 return new List<LiquidacionDto>();
             }
 
-            var json = await _repository.ObtenerLiquidacionesJson(database);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
-                return new List<LiquidacionDto>();
-            }
-
-            try
-            {
-                var result = JsonSerializer.Deserialize<List<LiquidacionDto>>(json);
-                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
-                return result ?? new List<LiquidacionDto>();
-            }
-            catch
-            {
-                _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
-                return new List<LiquidacionDto>();
-            }
+            var result = await _repository.ObtenerLiquidacionesAsync(database);
+            _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{IdCompania}", idCompania);
+            return result ?? new List<LiquidacionDto>();
         }
-     
+
         public async Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion)
         {
             _logger.LogInformation("Inicio TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);

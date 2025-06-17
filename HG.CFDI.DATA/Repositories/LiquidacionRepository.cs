@@ -8,6 +8,7 @@ using CFDI.Data.Contexts;
 using System.Data;
 using System;
 using CFDI.Data.Entities;
+using HG.CFDI.CORE.Models.DtoLiquidacionCfdi;
 
 namespace HG.CFDI.DATA.Repositories
 {
@@ -57,7 +58,7 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task<string?> ObtenerLiquidacionesJson(string database)
+        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(string database)
         {
             string server = database switch
             {
@@ -71,7 +72,7 @@ namespace HG.CFDI.DATA.Repositories
             var options = _dbContextFactory.CreateDbContextOptions(server);
             using var context = new CfdiDbContext(options);
             using var command = context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "cfdi.obtenerLiquidacionesJSON";
+            command.CommandText = "cfdi.obtenerLiquidaciones";
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.Add(new SqlParameter("@Database", database));
 
@@ -79,10 +80,27 @@ namespace HG.CFDI.DATA.Repositories
             try
             {
                 using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                var result = new List<LiquidacionDto>();
+                while (await reader.ReadAsync())
                 {
-                    return reader.IsDBNull(0) ? null : reader.GetString(0);
+                    var dto = new LiquidacionDto
+                    {
+                        IdLiquidacion = reader.GetInt32(reader.GetOrdinal("IdLiquidacion")),
+                        Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
+                        Rfc = reader.GetString(reader.GetOrdinal("rfc")),
+                        Fecha = reader.GetDateTime(reader.GetOrdinal("Fecha")),
+                        Intentos = reader.GetFieldValue<short>(reader.GetOrdinal("Intentos")),
+                        ProximoIntento = reader.IsDBNull(reader.GetOrdinal("ProximoIntento")) ? null : reader.GetDateTime(reader.GetOrdinal("ProximoIntento")),
+                        Xml = reader.IsDBNull(reader.GetOrdinal("Xml")) ? null : (byte[])reader["Xml"],
+                        Pdf = reader.IsDBNull(reader.GetOrdinal("Pdf")) ? null : (byte[])reader["Pdf"],
+                        Uuid = reader.IsDBNull(reader.GetOrdinal("Uuid")) ? null : reader.GetString(reader.GetOrdinal("Uuid"))
+                    };
+                    result.Add(dto);
                 }
+                return result;
+            }
+            catch( Exception ex)
+            {
                 return null;
             }
             finally

@@ -10,8 +10,8 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
         public DateTime Fecha { get; set; }
         public short Intentos { get; set; }
         public DateTime? ProximoIntento { get; set; }
-        public string? Xml { get; set; }
-        public string? Pdf { get; set; }
+        public byte[]? Xml { get; set; }
+        public byte[]? Pdf { get; set; }
         public string? Uuid { get; set; }
     }
 }
