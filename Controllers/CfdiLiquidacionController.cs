@@ -51,7 +51,7 @@ namespace HG.CFDI.API.Controllers
             try
             {
                 var liquidaciones = await _liquidacionService.ObtenerLiquidacionesAsync(parametros, database);
-                if (liquidaciones == null || !liquidaciones.Any())
+                if (liquidaciones == null || liquidaciones.Items == null || !liquidaciones.Items.Any())
                 {
                     return NotFound();
                 }
