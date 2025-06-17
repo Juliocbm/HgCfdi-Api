@@ -58,7 +58,7 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(string database)
+        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database)
         {
             string server = database switch
             {

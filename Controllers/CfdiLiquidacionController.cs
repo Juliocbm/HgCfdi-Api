@@ -1,4 +1,6 @@
+using CFDI.Data.Entities;
 using HG.CFDI.CORE.Interfaces;
+using HG.CFDI.CORE.Models;
 using HG.CFDI.CORE.Models.DtoLiquidacionCfdi;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
@@ -44,17 +46,11 @@ namespace HG.CFDI.API.Controllers
         }
 
         [HttpGet("GetLiquidaciones")]
-        public async Task<IActionResult> GetLiquidaciones(string database)
+        public async Task<ActionResult<GeneralResponse<LiquidacionDto>>> GetLiquidaciones([FromQuery] ParametrosGenerales parametros, string database)
         {
             try
             {
-                int? idCompania = ObtenerIdCompania(database);
-                if (idCompania is null)
-                {
-                    return BadRequest("Base de datos no válida");
-                }
-
-                var liquidaciones = await _liquidacionService.ObtenerLiquidacionesAsync(idCompania.Value);
+                var liquidaciones = await _liquidacionService.ObtenerLiquidacionesAsync(parametros, database);
                 if (liquidaciones == null || !liquidaciones.Any())
                 {
                     return NotFound();

@@ -100,6 +100,18 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirTodo", policy =>
+    {
+        policy
+            .AllowAnyOrigin()   // Permite cualquier origen
+            .AllowAnyMethod()   // Permite GET, POST, PUT, DELETE, etc.
+            .AllowAnyHeader();  // Permite cualquier header
+    });
+});
+
+
 Log.Logger = new LoggerConfiguration()
     // Establecer el nivel mínimo de logging global
     .MinimumLevel.Information()
@@ -194,7 +206,7 @@ builder.Host.UseSerilog();
 
 var app = builder.Build();
 
-app.UseCors();
+app.UseCors("PermitirTodo");
 
 // Después de construir la aplicación
 var serviceProvider = app.Services;

@@ -7,7 +7,7 @@ namespace HG.CFDI.CORE.Interfaces
     public interface ILiquidacionService
     {
         Task<CfdiNomina?> ObtenerLiquidacion(int idCompania, int noLiquidacion);
-        Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(int idCompania);
+        Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database);
         Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion);
         Task<UniqueResponse> ObtenerDocumentosTimbradosAsync(int idCompania, int idLiquidacion);
     }
