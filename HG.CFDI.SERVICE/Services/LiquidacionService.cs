@@ -58,7 +58,7 @@ namespace HG.CFDI.SERVICE.Services
             }
         }
 
-        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database)
+        public async Task<GeneralResponse<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database)
         {
             _logger.LogInformation("Inicio ObtenerLiquidaciones Compania:{database}", database);
             //string? database = ObtenerDatabase(idCompania);
@@ -70,7 +70,7 @@ namespace HG.CFDI.SERVICE.Services
 
             var result = await _repository.ObtenerLiquidacionesAsync(parametros, database);
             _logger.LogInformation("Fin ObtenerLiquidaciones Compania:{database}", database);
-            return result ?? new List<LiquidacionDto>();
+            return result;
         }
 
         public async Task<UniqueResponse> TimbrarLiquidacionAsync(int idCompania, int noLiquidacion)

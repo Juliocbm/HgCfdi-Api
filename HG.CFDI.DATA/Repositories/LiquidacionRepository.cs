@@ -1,6 +1,7 @@
 using HG.CFDI.CORE.ContextFactory;
 using HG.CFDI.CORE.Interfaces;
 using HG.CFDI.CORE.Models;
+using HG.CFDI.CORE.Utilities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -58,7 +59,7 @@ namespace HG.CFDI.DATA.Repositories
             }
         }
 
-        public async Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database)
+        public async Task<GeneralResponse<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database)
         {
             string server = database switch
             {
@@ -97,11 +98,65 @@ namespace HG.CFDI.DATA.Repositories
                     };
                     result.Add(dto);
                 }
-                return result;
+
+                var query = result.AsQueryable();
+
+                query = query.OrderByDynamic(parametros.OrdenarPor, parametros.Descending, nameof(LiquidacionDto.IdLiquidacion), true);
+
+                if (parametros.filtrosPorColumna != null)
+                {
+                    foreach (var filtro in parametros.filtrosPorColumna)
+                    {
+                        if (!string.IsNullOrEmpty(filtro.Value))
+                        {
+                            switch (filtro.Key.ToLower())
+                            {
+                                case "idliquidacion":
+                                    if (int.TryParse(filtro.Value, out int idLiqu))
+                                        query = query.Where(l => l.IdLiquidacion == idLiqu);
+                                    break;
+                                case "nombre":
+                                    query = query.Where(l => l.Nombre != null && l.Nombre.Contains(filtro.Value));
+                                    break;
+                                case "rfc":
+                                    query = query.Where(l => l.Rfc != null && l.Rfc.Contains(filtro.Value));
+                                    break;
+                                case "uuid":
+                                    query = query.Where(l => l.Uuid != null && l.Uuid.Contains(filtro.Value));
+                                    break;
+                                case "fecha":
+                                    if (DateTime.TryParse(filtro.Value, out DateTime fechaFil))
+                                        query = query.Where(l => l.Fecha.Date == fechaFil.Date);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                var totalRecords = query.Count();
+                var items = query
+                    .Skip((parametros.NoPagina - 1) * parametros.TamanoPagina)
+                    .Take(parametros.TamanoPagina)
+                    .ToList();
+
+                return new GeneralResponse<LiquidacionDto>
+                {
+                    TotalRecords = totalRecords,
+                    Items = items,
+                    IsSuccess = true,
+                    Message = "Liquidaciones consultadas correctamente."
+                };
             }
-            catch( Exception ex)
+            catch (Exception ex)
             {
-                return null;
+                return new GeneralResponse<LiquidacionDto>
+                {
+                    IsSuccess = false,
+                    Message = "Error al obtener las liquidaciones.",
+                    ErrorList = GetAllExceptionMessages(ex)
+                };
             }
             finally
             {

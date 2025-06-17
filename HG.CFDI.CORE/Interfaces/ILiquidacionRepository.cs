@@ -8,7 +8,7 @@ namespace HG.CFDI.CORE.Interfaces
     public interface ILiquidacionRepository
     {
         Task<string?> ObtenerDatosNominaJson(string database, int idLiquidacion);
-        Task<List<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database);
+        Task<GeneralResponse<LiquidacionDto>> ObtenerLiquidacionesAsync(ParametrosGenerales parametros, string database);
 
         Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid);
 
