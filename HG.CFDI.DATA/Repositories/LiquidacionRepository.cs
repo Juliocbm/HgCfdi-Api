@@ -113,21 +113,41 @@ namespace HG.CFDI.DATA.Repositories
                             {
                                 case "idliquidacion":
                                     if (int.TryParse(filtro.Value, out int idLiqu))
-                                        query = query.Where(l => l.IdLiquidacion == idLiqu);
+                                        query = query.Where(l => l.IdLiquidacion.ToString().Contains(idLiqu.ToString()));
                                     break;
                                 case "nombre":
-                                    query = query.Where(l => l.Nombre != null && l.Nombre.Contains(filtro.Value));
+                                    query = query.Where(l => l.Nombre != null && l.Nombre.ToLower().Contains(filtro.Value.ToLower()));
                                     break;
                                 case "rfc":
-                                    query = query.Where(l => l.Rfc != null && l.Rfc.Contains(filtro.Value));
+                                    query = query.Where(l => l.Rfc != null && l.Rfc.ToLower().Contains(filtro.Value.ToLower()));
                                     break;
                                 case "uuid":
-                                    query = query.Where(l => l.Uuid != null && l.Uuid.Contains(filtro.Value));
+                                    query = query.Where(l => l.Uuid != null && l.Uuid.ToLower().Contains(filtro.Value.ToLower()));
                                     break;
                                 case "fecha":
-                                    if (DateTime.TryParse(filtro.Value, out DateTime fechaFil))
-                                        query = query.Where(l => l.Fecha.Date == fechaFil.Date);
+                                    var fechas = filtro.Value.Split('-');
+                                    if (fechas.Length == 2 &&
+                                        DateTime.TryParse(fechas[0], out DateTime fechaInicio) &&
+                                        DateTime.TryParse(fechas[1], out DateTime fechaFin))
+                                    {
+                                        // Aseguramos que las fechas no estén desordenadas
+                                        if (fechaInicio > fechaFin)
+                                        {
+                                            var temp = fechaInicio;
+                                            fechaInicio = fechaFin;
+                                            fechaFin = temp;
+                                        }
+
+                                        // Filtramos por rango de fecha
+                                        query = query.Where(l => l.Fecha.Date >= fechaInicio.Date && l.Fecha.Date <= fechaFin.Date);
+                                    }
+                                    else if (DateTime.TryParse(filtro.Value, out DateTime fechaUnica))
+                                    {
+                                        // Si no es un rango, pero es una sola fecha válida
+                                        query = query.Where(l => l.Fecha.Date == fechaUnica.Date);
+                                    }
                                     break;
+
                                 default:
                                     break;
                             }

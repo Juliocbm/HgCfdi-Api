@@ -51,10 +51,10 @@ namespace HG.CFDI.API.Controllers
             try
             {
                 var liquidaciones = await _liquidacionService.ObtenerLiquidacionesAsync(parametros, database);
-                if (liquidaciones == null || liquidaciones.Items == null || !liquidaciones.Items.Any())
-                {
-                    return NotFound();
-                }
+                //if (liquidaciones == null || liquidaciones.Items == null || !liquidaciones.Items.Any())
+                //{
+                //    return Ok(liquidaciones);
+                //}
                 return Ok(liquidaciones);
             }
             catch (Exception ex)
