@@ -90,6 +90,10 @@ namespace HG.CFDI.DATA.Repositories
                         Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
                         Rfc = reader.GetString(reader.GetOrdinal("rfc")),
                         Fecha = reader.GetDateTime(reader.GetOrdinal("Fecha")),
+
+                        Estatus = reader.GetByte(reader.GetOrdinal("estatus")),
+                        Mensaje = reader.GetString(reader.GetOrdinal("mensaje")),
+
                         Intentos = reader.GetFieldValue<short>(reader.GetOrdinal("Intentos")),
                         ProximoIntento = reader.IsDBNull(reader.GetOrdinal("ProximoIntento")) ? null : reader.GetDateTime(reader.GetOrdinal("ProximoIntento")),
                         Xml = reader.IsDBNull(reader.GetOrdinal("Xml")) ? null : (byte[])reader["Xml"],

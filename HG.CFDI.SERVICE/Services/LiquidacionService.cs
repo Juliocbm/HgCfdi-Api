@@ -87,7 +87,7 @@ namespace HG.CFDI.SERVICE.Services
                 return respuesta;
             }
 
-            //string? database = ObtenerDatabase(idCompania);
+            string? database = ObtenerDatabase(idCompania);
 
             var liquidacion = await ObtenerLiquidacion(idCompania, noLiquidacion);
             if (liquidacion == null)
