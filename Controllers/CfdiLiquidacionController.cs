@@ -45,7 +45,7 @@ namespace HG.CFDI.API.Controllers
             }
         }
 
-        [HttpGet("GetLiquidaciones")]
+        [HttpGet("GetLiquidaciones/{database}")]
         public async Task<ActionResult<GeneralResponse<LiquidacionDto>>> GetLiquidaciones([FromQuery] ParametrosGenerales parametros, string database)
         {
             try

@@ -101,7 +101,7 @@ namespace HG.CFDI.DATA.Repositories
 
                 var query = result.AsQueryable();
 
-                query = query.OrderByDynamic(parametros.OrdenarPor, parametros.Descending, nameof(LiquidacionDto.IdLiquidacion), true);
+                //query = query.OrderByDynamic(parametros.OrdenarPor, parametros.Descending, nameof(LiquidacionDto.IdLiquidacion), true);
 
                 if (parametros.filtrosPorColumna != null)
                 {
@@ -162,6 +162,17 @@ namespace HG.CFDI.DATA.Repositories
             {
                 await context.Database.CloseConnectionAsync();
             }
+        }
+
+        private List<string> GetAllExceptionMessages(System.Exception ex)
+        {
+            var messages = new List<string>();
+            while (ex != null)
+            {
+                messages.Add(ex.Message);
+                ex = ex.InnerException;
+            }
+            return messages;
         }
 
         public async Task<liquidacionOperador?> ObtenerCabeceraAsync(int idCompania, int idLiquidacion)
