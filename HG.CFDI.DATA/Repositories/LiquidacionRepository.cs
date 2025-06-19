@@ -81,27 +81,45 @@ namespace HG.CFDI.DATA.Repositories
             try
             {
                 using var reader = await command.ExecuteReaderAsync();
+
                 var result = new List<LiquidacionDto>();
+
+                // Obtén los índices una sola vez
+                int ordIdLiquidacion = reader.GetOrdinal("IdLiquidacion");
+                int ordNombre = reader.GetOrdinal("Nombre");
+                int ordRfc = reader.GetOrdinal("rfc");
+                int ordFecha = reader.GetOrdinal("Fecha");
+                int ordEstatus = reader.GetOrdinal("estatus");
+                int ordMensaje = reader.GetOrdinal("mensaje");        // <- aquí está la clave
+                int ordIntentos = reader.GetOrdinal("Intentos");
+                int ordProxIntento = reader.GetOrdinal("ProximoIntento");
+                int ordXml = reader.GetOrdinal("Xml");
+                int ordPdf = reader.GetOrdinal("Pdf");
+                int ordUuid = reader.GetOrdinal("Uuid");
+
                 while (await reader.ReadAsync())
                 {
                     var dto = new LiquidacionDto
                     {
-                        IdLiquidacion = reader.GetInt32(reader.GetOrdinal("IdLiquidacion")),
-                        Nombre = reader.GetString(reader.GetOrdinal("Nombre")),
-                        Rfc = reader.GetString(reader.GetOrdinal("rfc")),
-                        Fecha = reader.GetDateTime(reader.GetOrdinal("Fecha")),
+                        IdLiquidacion = reader.GetInt32(ordIdLiquidacion),
+                        Nombre = reader.GetString(ordNombre),
+                        Rfc = reader.GetString(ordRfc),
+                        Fecha = reader.GetDateTime(ordFecha),
+                        Estatus = reader.GetByte(ordEstatus),
 
-                        Estatus = reader.GetByte(reader.GetOrdinal("estatus")),
-                        Mensaje = reader.GetString(reader.GetOrdinal("mensaje")),
+                        // Evita romperte si viene NULL
+                        Mensaje = reader.IsDBNull(ordMensaje) ? null : reader.GetString(ordMensaje),
 
-                        Intentos = reader.GetFieldValue<short>(reader.GetOrdinal("Intentos")),
-                        ProximoIntento = reader.IsDBNull(reader.GetOrdinal("ProximoIntento")) ? null : reader.GetDateTime(reader.GetOrdinal("ProximoIntento")),
-                        Xml = reader.IsDBNull(reader.GetOrdinal("Xml")) ? null : (byte[])reader["Xml"],
-                        Pdf = reader.IsDBNull(reader.GetOrdinal("Pdf")) ? null : (byte[])reader["Pdf"],
-                        Uuid = reader.IsDBNull(reader.GetOrdinal("Uuid")) ? null : reader.GetString(reader.GetOrdinal("Uuid"))
+                        Intentos = reader.GetFieldValue<short>(ordIntentos),
+                        ProximoIntento = reader.IsDBNull(ordProxIntento) ? null : reader.GetDateTime(ordProxIntento),
+                        Xml = reader.IsDBNull(ordXml) ? null : (byte[])reader[ordXml],
+                        Pdf = reader.IsDBNull(ordPdf) ? null : (byte[])reader[ordPdf],
+                        Uuid = reader.IsDBNull(ordUuid) ? null : reader.GetString(ordUuid)
                     };
+
                     result.Add(dto);
                 }
+
 
                 var query = result.AsQueryable();
 

@@ -69,6 +69,9 @@ namespace HG.CFDI.API.Controllers
         {
             try
             {
+                // Espera de 15 segundos
+                //await Task.Delay(15000);
+
                 string? database = ObtenerDatabase(idCompania);
                 if (string.IsNullOrEmpty(database))
                 {

@@ -10,7 +10,7 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
         public DateTime Fecha { get; set; }
 
         public int Estatus { get; set; }
-        public string Mensaje { get; set; }
+        public string? Mensaje { get; set; }
 
 
         public short Intentos { get; set; }

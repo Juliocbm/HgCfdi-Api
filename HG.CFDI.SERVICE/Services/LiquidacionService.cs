@@ -79,7 +79,7 @@ namespace HG.CFDI.SERVICE.Services
             var respuesta = new UniqueResponse();
 
             var cabecera = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
-            if (cabecera != null && cabecera.Estatus == (byte)EstatusLiquidacion.Timbrado)
+            if (cabecera != null && (cabecera.Estatus == (byte)EstatusLiquidacion.Timbrado || cabecera.Estatus == (byte)EstatusLiquidacion.EnProceso || cabecera.XMLTimbrado != null || cabecera.PDFTimbrado != null || cabecera.UUID != null))
             {
                 respuesta.IsSuccess = false;
                 respuesta.Mensaje = "La liquidación ya fue timbrada";
