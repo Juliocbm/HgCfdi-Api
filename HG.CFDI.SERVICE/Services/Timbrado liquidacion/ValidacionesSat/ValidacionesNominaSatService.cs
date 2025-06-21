@@ -55,13 +55,29 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 Serie = liquidacion.Serie,
                 Folio = liquidacion.Folio.ToString(),
                 FechaSpecified = true,
-                Fecha = liquidacion.Fecha,
+                Fecha = new DateTime(
+                    liquidacion.Fecha.Year,
+                    liquidacion.Fecha.Month,
+                    liquidacion.Fecha.Day,
+                    liquidacion.Fecha.Hour,
+                    liquidacion.Fecha.Minute,
+                    liquidacion.Fecha.Second,
+                    DateTimeKind.Unspecified
+                ),
+
                 Moneda = ParseEnumSafe<BuzonE.c_Moneda>(liquidacion.Moneda, nameof(liquidacion.Moneda)),
                 Exportacion = ParseEnumSafe<BuzonE.c_Exportacion>(liquidacion.Exportacion, nameof(liquidacion.Exportacion), true),
-                SubTotal = liquidacion.TotalesPercepciones.TotalPercepciones,
-                DescuentoSpecified = true,
-                Descuento = liquidacion.TotalesDeducciones.TotalDeducciones,
-                Total = liquidacion.TotalesPercepciones.TotalPercepciones - liquidacion.TotalesDeducciones.TotalDeducciones,
+
+                //SubTotal = liquidacion.TotalesPercepciones.TotalPercepciones,
+                //DescuentoSpecified = true,
+                //Descuento = liquidacion.TotalesDeducciones.TotalDeducciones,
+                //Total = liquidacion.TotalesPercepciones.TotalPercepciones - liquidacion.TotalesDeducciones.TotalDeducciones,
+
+                SubTotal = decimal.Round(liquidacion.SubTotal, 2, MidpointRounding.AwayFromZero),
+                Descuento = decimal.Round(liquidacion.Descuento, 2, MidpointRounding.AwayFromZero),
+                Total = decimal.Round(liquidacion.Total, 2, MidpointRounding.AwayFromZero),
+
+
                 LugarExpedicion = liquidacion.LugarExpedicion.ToString(),
                 MetodoPagoSpecified = true,
                 MetodoPago = ParseEnumSafe<BuzonE.c_MetodoPago>(liquidacion.MetodoPago, nameof(liquidacion.MetodoPago)),
@@ -92,10 +108,10 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                     Cantidad = 1m,
                     ClaveUnidad = BuzonE.c_ClaveUnidad.ACT,
                     Descripcion = "Pago de nómina",
-                    ValorUnitario = liquidacion.TotalesPercepciones.TotalPercepciones,
-                    Importe = liquidacion.TotalesPercepciones.TotalPercepciones,
-                    DescuentoSpecified = true,
-                    Descuento = liquidacion.TotalesDeducciones.TotalDeducciones,
+                    ValorUnitario = decimal.Round(liquidacion.TotalesPercepciones.TotalPercepciones, 2, MidpointRounding.AwayFromZero),
+                    Importe = decimal.Round(liquidacion.TotalesPercepciones.TotalPercepciones, 2, MidpointRounding.AwayFromZero),
+                    DescuentoSpecified = false,
+                    //Descuento = decimal.Round(liquidacion.TotalesDeducciones.TotalDeducciones, 2, MidpointRounding.AwayFromZero),
                     ObjetoImp = BuzonE.c_ObjetoImp.Item01
                 }
             };
@@ -110,9 +126,9 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 FechaFinalPago = liquidacion.Nomina.FechaFinalPago,
                 NumDiasPagados = liquidacion.Nomina.NumDiasPagados,
                 TotalPercepcionesSpecified = true,
-                TotalPercepciones = liquidacion.TotalesPercepciones.TotalPercepciones,
+                TotalPercepciones = decimal.Round(liquidacion.TotalesPercepciones.TotalPercepciones, 2, MidpointRounding.AwayFromZero),
                 TotalDeduccionesSpecified = true,
-                TotalDeducciones = liquidacion.TotalesDeducciones.TotalDeducciones
+                TotalDeducciones = decimal.Round(liquidacion.TotalesDeducciones.TotalDeducciones, 2, MidpointRounding.AwayFromZero)
             };
 
             nomina.Percepciones = new BuzonE.NominaPercepciones
@@ -122,13 +138,13 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                     TipoPercepcion = ParseEnumSafe<BuzonE.c_TipoPercepcion>(p.TipoPercepcion, nameof(p.TipoPercepcion), true),
                     Clave = p.Clave,
                     Concepto = p.Concepto,
-                    ImporteGravado = p.ImporteGravado,
-                    ImporteExento = p.ImporteExento
+                    ImporteGravado = decimal.Round(p.ImporteGravado, 2, MidpointRounding.AwayFromZero),
+                    ImporteExento = decimal.Round(p.ImporteExento, 2, MidpointRounding.AwayFromZero)
                 }).ToArray(),
                 TotalSueldosSpecified = true,
-                TotalSueldos = liquidacion.TotalesPercepciones.TotalSueldos,
-                TotalGravado = liquidacion.TotalesPercepciones.TotalGravado,
-                TotalExento = liquidacion.TotalesPercepciones.TotalExento
+                TotalSueldos = decimal.Round(liquidacion.TotalesPercepciones.TotalSueldos, 2, MidpointRounding.AwayFromZero),
+                TotalGravado = decimal.Round(liquidacion.TotalesPercepciones.TotalGravado, 2, MidpointRounding.AwayFromZero),
+                TotalExento = decimal.Round(liquidacion.TotalesPercepciones.TotalExento, 2, MidpointRounding.AwayFromZero)
             };
 
             nomina.Deducciones = new BuzonE.NominaDeducciones
@@ -136,14 +152,14 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 Deduccion = liquidacion.Deducciones.Select(d => new BuzonE.NominaDeduccionesDeduccion
                 {
                     TipoDeduccion = ParseEnumSafe<BuzonE.c_TipoDeduccion>(d.TipoDeduccion.PadLeft(3, '0'), nameof(d.TipoDeduccion), true),
-                    Clave = d.Clave.ToString("000000"),
+                    Clave = d.Clave,
                     Concepto = d.Concepto,
-                    Importe = d.Importe
+                    Importe = decimal.Round(d.Importe, 2, MidpointRounding.AwayFromZero)
                 }).ToArray(),
                 TotalOtrasDeduccionesSpecified = true,
-                TotalOtrasDeducciones = liquidacion.TotalesDeducciones.TotalOtrasDeducciones,
+                TotalOtrasDeducciones = decimal.Round(liquidacion.TotalesDeducciones.TotalOtrasDeducciones, 2, MidpointRounding.AwayFromZero),
                 TotalImpuestosRetenidosSpecified = true,
-                TotalImpuestosRetenidos = liquidacion.TotalesDeducciones.TotalImpuestosRetenidos
+                TotalImpuestosRetenidos = decimal.Round(liquidacion.TotalesDeducciones.TotalImpuestosRetenidos, 2, MidpointRounding.AwayFromZero)
             };
 
             nomina.Emisor = new BuzonE.NominaEmisor
@@ -163,8 +179,8 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 NumEmpleado = liquidacion.ComplementoReceptor.NumEmpleado,
                 Departamento = liquidacion.ComplementoReceptor.Departamento,
                 Puesto = liquidacion.ComplementoReceptor.Puesto,
-                RiesgoPuestoSpecified = true,
-                RiesgoPuesto = ParseEnumSafe<BuzonE.c_RiesgoPuesto>(liquidacion.ComplementoReceptor.RiesgoPuesto, nameof(liquidacion.ComplementoReceptor.RiesgoPuesto), true),
+                RiesgoPuestoSpecified = false,
+                //RiesgoPuesto = ParseEnumSafe<BuzonE.c_RiesgoPuesto>(liquidacion.ComplementoReceptor.RiesgoPuesto, nameof(liquidacion.ComplementoReceptor.RiesgoPuesto), true),
                 PeriodicidadPago = ParseEnumSafe<BuzonE.c_PeriodicidadPago>(liquidacion.ComplementoReceptor.PeriodicidadPago, nameof(liquidacion.ComplementoReceptor.PeriodicidadPago), true),
                 BancoSpecified = !string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco),
                 Banco = string.IsNullOrEmpty(liquidacion.ComplementoReceptor.ClaveBanco) ? BuzonE.c_Banco.Item058 : ParseEnumSafe<BuzonE.c_Banco>(liquidacion.ComplementoReceptor.ClaveBanco, nameof(liquidacion.ComplementoReceptor.ClaveBanco), true),
@@ -172,7 +188,7 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
                 SalarioBaseCotApor = liquidacion.ComplementoReceptor.SalarioBaseCotApor,
                 SalarioDiarioIntegradoSpecified = true,
                 SalarioDiarioIntegrado = liquidacion.ComplementoReceptor.SalarioDiarioIntegrado,
-                ClaveEntFed = ParseEnumSafe<BuzonE.c_Estado>(liquidacion.ComplementoReceptor.ClaveEntFed, nameof(liquidacion.ComplementoReceptor.ClaveEntFed))
+                //ClaveEntFed = ParseEnumSafe<BuzonE.c_Estado>(liquidacion.ComplementoReceptor.ClaveEntFed, nameof(liquidacion.ComplementoReceptor.ClaveEntFed))
             };
            
             complemento.Nomina = new[] { nomina };

@@ -157,6 +157,7 @@ namespace HG.CFDI.SERVICE.Services
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
 
+                    //FALTA TOMAR EN CUENTA ErrorList
                     string mensajeError = responseServicio?.mensajeErrorTimbrado ?? respuesta.Mensaje;
                     if (!string.IsNullOrWhiteSpace(responseServicio?.mensajeErrorTimbrado))
                         respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);

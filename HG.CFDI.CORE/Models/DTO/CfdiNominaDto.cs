@@ -18,7 +18,9 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
         public int LugarExpedicion { get; set; }
         public string MetodoPago { get; set; }
         public string TipoDeComprobante { get; set; }
-
+        public decimal SubTotal { get; set; }
+        public decimal Total { get; set; }
+        public decimal Descuento { get; set; }
         public Emisor Emisor { get; set; }
         public Receptor Receptor { get; set; }
         public Nomina Nomina { get; set; }
@@ -76,7 +78,7 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
     public class Deduccion
     {
         public string TipoDeduccion { get; set; }
-        public int Clave { get; set; }
+        public string Clave { get; set; }
         public string Concepto { get; set; }
         public decimal Importe { get; set; }
     }
