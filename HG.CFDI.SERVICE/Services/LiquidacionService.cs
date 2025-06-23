@@ -11,6 +11,8 @@ using System.Net.Http;
 using HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using System.Xml.Serialization;
+using System.Xml;
 
 namespace HG.CFDI.SERVICE.Services
 {
@@ -107,6 +109,8 @@ namespace HG.CFDI.SERVICE.Services
             try
             {
                 request = await _validacionesNominaSat.ConstruirRequestBuzonEAsync(liquidacion, database);
+                var xml = SerializeToString(request.Comprobante);
+                Console.WriteLine(xml);
             }
             catch (Exception ex)
             {
@@ -185,6 +189,37 @@ namespace HG.CFDI.SERVICE.Services
             _logger.LogInformation("Fin TimbrarLiquidacionAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, noLiquidacion);
             return respuesta;
         }
+
+        public static string SerializeToString<T>(T value)
+        {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
+            var xmlSerializer = new XmlSerializer(typeof(T));
+
+            var xmlSettings = new XmlWriterSettings
+            {
+                Indent = true,
+                Encoding = Encoding.UTF8,
+                OmitXmlDeclaration = false // Puedes poner true si no quieres <?xml ... ?>
+            };
+
+            var ns = new XmlSerializerNamespaces();
+            ns.Add(string.Empty, "http://www.sat.gob.mx/cfd/4"); // Usa el namespace correcto para CFDI 4.0
+
+            using (var stringWriter = new Utf8StringWriter())
+            using (var xmlWriter = XmlWriter.Create(stringWriter, xmlSettings))
+            {
+                xmlSerializer.Serialize(xmlWriter, value, ns);
+                return stringWriter.ToString();
+            }
+        }
+
+        public class Utf8StringWriter : StringWriter
+        {
+            public override Encoding Encoding => Encoding.UTF8;
+        }
+
 
         public async Task<UniqueResponse> ObtenerDocumentosTimbradosAsync(int idCompania, int idLiquidacion)
         {
