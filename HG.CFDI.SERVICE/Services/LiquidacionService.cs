@@ -161,12 +161,23 @@ namespace HG.CFDI.SERVICE.Services
                     respuesta.IsSuccess = false;
                     respuesta.Mensaje = responseServicio?.mensaje ?? "Error en timbrado";
 
-                    //FALTA TOMAR EN CUENTA ErrorList
                     string mensajeError = responseServicio?.mensajeErrorTimbrado ?? respuesta.Mensaje;
                     if (!string.IsNullOrWhiteSpace(responseServicio?.mensajeErrorTimbrado))
                         respuesta.Errores.Add(responseServicio.mensajeErrorTimbrado);
 
                     var cabeceraActual = await _repository.ObtenerCabeceraAsync(idCompania, noLiquidacion);
+                    if (responseServicio?.errorList != null)
+                    {
+                        foreach (var error in responseServicio.errorList)
+                        {
+                            string err = $"{error.message}{error.detail}";
+                            respuesta.Errores.Add(err);
+                            mensajeError += $" | {err}";
+                            if (cabeceraActual != null)
+                                await _repository.RegistrarErrorIntentoAsync(idCompania, noLiquidacion, cabeceraActual.UltimoIntento, err);
+                        }
+                    }
+
                     if (cabeceraActual != null)
                         await _repository.RegistrarErrorIntentoAsync(idCompania, noLiquidacion, cabeceraActual.UltimoIntento, mensajeError);
                 }
