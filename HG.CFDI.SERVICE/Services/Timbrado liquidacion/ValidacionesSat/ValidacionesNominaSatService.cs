@@ -268,15 +268,15 @@ namespace HG.CFDI.SERVICE.Services.Timbrado_liquidacion.ValidacionesSat
 
             comprobante.Emisor = new BuzonE.ComprobanteEmisor
             {
-                Rfc = liquidacion.Emisor.rfc,
-                Nombre = liquidacion.Emisor.nombre,
-                RegimenFiscal = ParseEnumSafe<BuzonE.c_RegimenFiscal>(liquidacion.Emisor.claveSAT, nameof(liquidacion.Emisor.claveSAT), true)
+                Rfc = liquidacion.Emisor.Rfc,
+                Nombre = liquidacion.Emisor.Nombre,
+                RegimenFiscal = ParseEnumSafe<BuzonE.c_RegimenFiscal>(liquidacion.Emisor.RegimenFiscal, nameof(liquidacion.Emisor.RegimenFiscal), true)
             };
 
             comprobante.Receptor = new BuzonE.ComprobanteReceptor
             {
-                Rfc = liquidacion.Receptor.rfc,
-                Nombre = liquidacion.Receptor.nombre,
+                Rfc = liquidacion.Receptor.Rfc,
+                Nombre = liquidacion.Receptor.Nombre,
                 DomicilioFiscalReceptor = liquidacion.Receptor.DomicilioFiscalReceptor,
                 RegimenFiscalReceptor = ParseEnumSafe<BuzonE.c_RegimenFiscal>(liquidacion.Receptor.RegimenFiscalReceptor, nameof(liquidacion.Receptor.RegimenFiscalReceptor), true),
                 UsoCFDI = ParseEnumSafe<BuzonE.c_UsoCFDI>(liquidacion.Receptor.UsoCFDI, nameof(liquidacion.Receptor.UsoCFDI))

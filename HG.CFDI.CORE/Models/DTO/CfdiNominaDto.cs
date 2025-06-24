@@ -33,16 +33,16 @@ namespace HG.CFDI.CORE.Models.DtoLiquidacionCfdi
     }
     public class Emisor
     {
-        public string rfc { get; set; }
-        public string nombre { get; set; }
-        public string claveSAT { get; set; }
+        public string Rfc { get; set; }
+        public string Nombre { get; set; }
+        public string RegimenFiscal { get; set; }
     }
 
     public class Receptor
     {
-        public string rfc { get; set; }
-        public string nombre { get; set; }
-        public string cp { get; set; }
+        public string Rfc { get; set; }
+        public string Nombre { get; set; }
+        public string Cp { get; set; }
         public string DomicilioFiscalReceptor { get; set; }
         public string RegimenFiscalReceptor { get; set; }
         public string UsoCFDI { get; set; }
