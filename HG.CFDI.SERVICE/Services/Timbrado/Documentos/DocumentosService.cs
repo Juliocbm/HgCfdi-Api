@@ -246,14 +246,34 @@ namespace HG.CFDI.SERVICE.Services.Timbrado.Documentos
         {
             try
             {
+                var pdfService = new PdfService();
                 var logoBase64 = ObtenerLogotipoEnBase64(database);
 
                 if (string.IsNullOrEmpty(logoBase64))
                 {
-                    return await CfdiPdf.NominaDesdeXmlStringAsync(xmlCFDTimbrado, true);
+                    return await pdfService.GenerarPdfNominaDesdeXmlAsync(xmlCFDTimbrado, true);
                 }
 
-                return await CfdiPdf.NominaDesdeXmlStringAsync(xmlCFDTimbrado, true, logoBase64);
+                return await pdfService.GenerarPdfNominaDesdeXmlAsync(xmlCFDTimbrado, true, logoBase64);
+                //return new byte[0];
+            }
+            catch (System.Exception ex)
+            {
+                return new byte[0];
+            }
+        }
+        public async Task<byte[]> GetPdfNominaTimbrado(byte[] xmlCFDTimbrado, string database)
+        {
+            try
+            {
+                var logoBase64 = ObtenerLogotipoEnBase64(database);
+
+                if (string.IsNullOrEmpty(logoBase64))
+                {
+                    return await CfdiPdf.NominaDesdeXmlBytesAsync(xmlCFDTimbrado);
+                }
+
+                return await CfdiPdf.NominaDesdeXmlBytesAsync(xmlCFDTimbrado, logoBase64);
                 //return new byte[0];
             }
             catch (System.Exception ex)

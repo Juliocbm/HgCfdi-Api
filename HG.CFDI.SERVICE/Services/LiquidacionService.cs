@@ -235,27 +235,74 @@ namespace HG.CFDI.SERVICE.Services
         public async Task<UniqueResponse> ObtenerDocumentosTimbradosAsync(int idCompania, int idLiquidacion)
         {
             _logger.LogInformation("Inicio ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+            var respuesta = new UniqueResponse();
 
-            var registro = await _repository.ObtenerCabeceraAsync(idCompania, idLiquidacion);
-
-            if (registro?.XMLTimbrado != null && registro.PDFTimbrado != null)
+            string? database = ObtenerDatabase(idCompania);
+            if (string.IsNullOrEmpty(database))
             {
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "Base de datos no válida";
                 _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
-                return new UniqueResponse
-                {
-                    IsSuccess = true,
-                    Mensaje = "Documentos encontrados",
-                    XmlByteArray = registro.XMLTimbrado,
-                    PdfByteArray = registro.PDFTimbrado
-                };
+                return respuesta;
             }
 
-            _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
-            return new UniqueResponse
+            var registro = await _repository.ObtenerCabeceraAsync(idCompania, idLiquidacion);
+            if (registro?.Estatus != (byte)EstatusLiquidacion.Timbrado)
             {
-                IsSuccess = false,
-                Mensaje = "Documentos no encontrados"
-            };
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "La liquidación no está timbrada";
+                _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+                return respuesta;
+            }
+
+            if (registro?.XMLTimbrado == null)
+            {
+                respuesta.IsSuccess = false;
+                respuesta.Mensaje = "No se encontró el XML timbrado";
+                _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+                return respuesta;
+            }
+
+            // Validar si el PDF existe y no es vacío
+            bool pdfValido = registro?.PDFTimbrado != null && registro.PDFTimbrado.Length > 0;
+            if (!pdfValido)
+            {
+                try
+                {
+                    // Generar el PDF usando el servicio de documentos
+                    byte[] pdf = await _documentosService.GetPdfNominaTimbrado(Encoding.UTF8.GetString(registro.XMLTimbrado), database);
+                    if (pdf != null && pdf.Length > 0)
+                    {
+                        // Actualizar el PDF en la base de datos usando InsertarDocTimbradoLiqAsync
+                        await _repository.InsertarDocTimbradoLiqAsync(idCompania, idLiquidacion, null, pdf, null);
+                        registro.PDFTimbrado = pdf;
+                    }
+                    else
+                    {
+                        respuesta.IsSuccess = false;
+                        respuesta.Mensaje = "Error al generar el PDF";
+                        _logger.LogError("Error al generar PDF para liquidación {IdCompania}-{IdLiquidacion}", idCompania, idLiquidacion);
+                        return respuesta;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    respuesta.IsSuccess = false;
+                    respuesta.Mensaje = "Error al generar el PDF: " + ex.Message;
+                    _logger.LogError(ex, "Error al generar PDF para liquidación {IdCompania}-{IdLiquidacion}", idCompania, idLiquidacion);
+                    return respuesta;
+                }
+            }
+
+            // Devolver los documentos
+            respuesta.IsSuccess = true;
+            respuesta.Mensaje = "Documentos obtenidos exitosamente";
+            respuesta.XmlByteArray = registro.XMLTimbrado;
+            respuesta.PdfByteArray = registro.PDFTimbrado;
+            //respuesta.Uuid = registro.UUID;
+
+            _logger.LogInformation("Fin ObtenerDocumentosTimbradosAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+            return respuesta;
         }
 
         private async Task RegistrarFalloDeTimbrado(int idCompania, int noLiquidacion, bool transitorio)

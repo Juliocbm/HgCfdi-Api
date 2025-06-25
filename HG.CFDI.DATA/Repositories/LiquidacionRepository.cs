@@ -325,6 +325,27 @@ namespace HG.CFDI.DATA.Repositories
             _logger.LogInformation("Fin ActualizarResultadoIntentoAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
         }
 
+        //public async Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
+        //{
+        //    _logger.LogInformation("Inicio InsertarDocTimbradoLiqAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+        //    string server = "server2019";
+
+        //    var options = _dbContextFactory.CreateDbContextOptions(server);
+        //    using var context = new CfdiDbContext(options);
+
+        //    var entidad = await context.liquidacionOperadors
+        //        .FirstOrDefaultAsync(l => l.IdLiquidacion == idLiquidacion && l.IdCompania == idCompania);
+
+        //    if (entidad != null)
+        //    {
+        //        entidad.XMLTimbrado = xmlTimbrado;
+        //        entidad.PDFTimbrado = pdfTimbrado;
+        //        entidad.UUID = uuid;
+        //        await context.SaveChangesAsync();
+        //    }
+        //    _logger.LogInformation("Fin InsertarDocTimbradoLiqAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
+        //}
+
         public async Task InsertarDocTimbradoLiqAsync(int idCompania, int idLiquidacion, byte[]? xmlTimbrado, byte[]? pdfTimbrado, string? uuid)
         {
             _logger.LogInformation("Inicio InsertarDocTimbradoLiqAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);
@@ -338,9 +359,14 @@ namespace HG.CFDI.DATA.Repositories
 
             if (entidad != null)
             {
-                entidad.XMLTimbrado = xmlTimbrado;
-                entidad.PDFTimbrado = pdfTimbrado;
-                entidad.UUID = uuid;
+                // Solo actualizar los campos que no son nulos
+                if (xmlTimbrado != null)
+                    entidad.XMLTimbrado = xmlTimbrado;
+                if (pdfTimbrado != null)
+                    entidad.PDFTimbrado = pdfTimbrado;
+                if (uuid != null)
+                    entidad.UUID = uuid;
+
                 await context.SaveChangesAsync();
             }
             _logger.LogInformation("Fin InsertarDocTimbradoLiqAsync Compania:{IdCompania} Liquidacion:{IdLiquidacion}", idCompania, idLiquidacion);

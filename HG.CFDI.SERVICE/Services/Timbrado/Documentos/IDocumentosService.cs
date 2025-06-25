@@ -28,6 +28,7 @@ namespace HG.CFDI.CORE.Interfaces
         Task<byte[]> getPdfTimbrado(string xmlCFDTimbrado, string database);
         Task<byte[]> FallbackGetPdfTimbrado(string xmlCFDTimbrado, string database);     
         Task<byte[]> GetPdfNominaTimbrado(string xmlCFDTimbrado, string database);
+        Task<byte[]> GetPdfNominaTimbrado(byte[] xmlCFDTimbrado, string database);
 
         Task GuardarArchivosEnServidor(cartaPorteCabecera cartaPorte, byte[] xmlBytes, byte[] pdfBytes);
         archivoCFDi CreateArchivoCFDi(cartaPorteCabecera cartaPorte, byte[] xml, byte[] pdf, string uuid);
